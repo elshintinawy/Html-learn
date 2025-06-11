@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // التأكد من أننا في الصفحة الصحيحة قبل تشغيل الكود
     if (!document.getElementById('chart1-container')) return;
 
     const API_ENDPOINTS = {
