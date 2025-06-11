@@ -1,0 +1,86 @@
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #f4f7f6;
+    direction: rtl;
+    text-align: right;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: #1a253c;
+    color: #fff;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    z-index: 1000;
+}
+
+.sidebar .logo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.sidebar .nav-link {
+    color: #adb5bd;
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.sidebar .nav-link .icon {
+    font-size: 1.2rem;
+    margin-left: 0.8rem;
+}
+
+.sidebar .user-profile {
+    margin-top: auto;
+}
+
+.main-content {
+    margin-right: 280px;
+    padding: 2rem;
+}
+
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.3rem;
+    margin: 0 2px;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    background-color: #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-right: 0;
+    }
+
+    .sidebar {
+        display: none;
+    }
+}

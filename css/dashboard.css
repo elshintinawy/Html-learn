@@ -1,0 +1,30 @@
+.chart-container {
+    position: relative;
+    height: 350px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.skeleton {
+    animation: skeleton-glow 1.5s linear infinite alternate;
+    background-color: #e9ecef;
+}
+
+@keyframes skeleton-glow {
+    from {
+        opacity: 0.6;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.skeleton-text {
+    width: 100%;
+    height: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+}
