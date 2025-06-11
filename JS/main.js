@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loggedInUser) {
             usernameDisplay.textContent = loggedInUser;
         } else {
+            // If no user is logged in, force redirect to login page
             alert('الرجاء تسجيل الدخول أولاً.');
             window.location.href = 'login.html';
         }

@@ -37,8 +37,26 @@
             </div>
         </aside>
         <main class="main-content">
-            <h2 class="mb-4 fw-bold">إضافة مشروع جديد</h2>
+            <h2 class="mb-4 fw-bold">إضافة مشروع</h2>
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-file-excel me-2 text-success"></i> إضافة مجمعة عبر ملف إكسل</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">لتوفير الوقت، يمكنك إضافة عدة مشاريع مرة واحدة عن طريق رفع ملف إكسل. الرجاء استخدام القالب المعتمد.</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <input class="form-control" type="file" id="excelFile">
+                        <button class="btn btn-primary flex-shrink-0">رفع الملف</button>
+                        <a href="#" class="btn btn-outline-secondary flex-shrink-0">
+                            <i class="fas fa-download me-1"></i> تحميل القالب
+                        </a>
+                    </div>
+                </div>
+            </div>
             <div class="card">
+                <div class="card-header bg-light">
+                     <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i> إضافة مشروع واحد يدويًا</h5>
+                </div>
                 <div class="card-body p-4">
                     <form id="addProjectForm">
                         <div class="row g-3">
@@ -54,7 +72,10 @@
                             <div class="col-md-4"><label class="form-label">القيمة التعاقدية</label><input type="number" class="form-control"></div>
                             <div class="col-md-4"><label class="form-label">تاريخ البدء</label><input type="date" class="form-control"></div>
                             <div class="col-md-4"><label class="form-label">مدة التنفيذ (شهر)</label><input type="number" class="form-control"></div>
-                            <div class="col-12 mt-4 text-center"><a href="index.html" class="btn btn-secondary px-4">إلغاء</a><button type="submit" class="btn btn-primary px-4">حفظ وإضافة المشروع</button></div>
+                            <div class="col-12 mt-4 text-center">
+                                <a href="index.html" class="btn btn-secondary px-4">إلغاء</a>
+                                <button type="submit" class="btn btn-primary px-4">حفظ المشروع</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -69,13 +90,20 @@
                 function showToast(message, type = 'success') {
                     const toastId = 'toast-' + Math.random();
                     const toastHTML = `<div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert"><div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
-                    toastContainer.innerHTML += toastHTML;
-                    new bootstrap.Toast(document.getElementById(toastId)).show();
+                    if(toastContainer) {
+                        toastContainer.innerHTML += toastHTML;
+                        const toastElement = document.getElementById(toastId);
+                        const toast = new bootstrap.Toast(toastElement);
+                        toast.show();
+                    }
                 }
-                document.getElementById('addProjectForm').addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    showToast('تم حفظ المشروع بنجاح (محاكاة)!', 'success');
-                });
+                const addProjectForm = document.getElementById('addProjectForm');
+                if(addProjectForm) {
+                    addProjectForm.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        showToast('تم حفظ المشروع بنجاح (محاكاة)!', 'success');
+                    });
+                }
             });
         </script>
     </body>

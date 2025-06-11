@@ -115,7 +115,6 @@ body {
     z-index: 1100;
 }
 
-
 /* Responsive Styles */
 @media (max-width: 768px) {
     .main-content {
