@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // التأكد من أننا في الصفحة الصحيحة قبل تشغيل الكود
+
   if (!document.getElementById("chart1-container")) return;
-  // h[eader and footer scripts]
+
   const API_ENDPOINTS = {
     dashboardData: "/api/dashboard",
   };
