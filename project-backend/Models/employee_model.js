@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const employeeSchema = new mongoose.Schema(
   {
-    id: {
-      type: Number,
+    nationalId: {
+      type: String,
       required: [true, "Id is required"],
       unique: true,
     },
@@ -33,16 +33,6 @@ const employeeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
-
-  {
-    versionKey: false,
-    toJSON: {
-      transform: (doc, ret) => {
-        delete ret._id;
-        return ret;
-      },
-    },
   }
 );
 

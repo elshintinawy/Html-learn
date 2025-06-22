@@ -8,7 +8,7 @@ function httpSuccessStatus(data = null) {
 function httpFaliureStatus(data = null) {
   return {
     status: "fail",
-    data: data,
+    message: data,
   };
 }
 
