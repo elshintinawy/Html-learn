@@ -7,8 +7,8 @@ const verifyLogin = require("../middlewares/verifyLogin"); */
 
 router.post("/", controllers.AddNewActivity);
 router.get("/", controllers.GetAllActivites);
-//router.get("/:activityCode", controllers.GetActivityById);
-//router.delete("/deleteActivity/:activityCode", controllers.DeleteActivity);
-//router.patch("/UpdateActivity/:activityCode", controllers.UpdateActivity);
+router.get("/:activityCode", controllers.GetActivityById);
+router.delete("/deleteActivity/:activityCode", controllers.DeleteActivity);
+router.patch("/UpdateActivity/:activityCode", controllers.UpdateActivity);
 
 module.exports = router;

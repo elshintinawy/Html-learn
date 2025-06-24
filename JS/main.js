@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (usernameDisplay && logoutButton) {
         const loggedInUser = localStorage.getItem('loggedInUser');
+        const token = localStorage.getItem('loggedInUserToken');
 
-        if (loggedInUser) {
+        if (loggedInUser && token) {
             usernameDisplay.textContent = loggedInUser;
         } else {
-            // If no user is logged in, force redirect to login page
             alert('الرجاء تسجيل الدخول أولاً.');
             window.location.href = 'login.html';
         }
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutButton.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('loggedInUser');
+            localStorage.removeItem('loggedInUserToken');
             window.location.href = 'login.html';
         });
     }

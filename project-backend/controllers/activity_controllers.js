@@ -40,10 +40,67 @@ const GetAllActivites = async (req, res) => {
   }
 };
 
+const GetActivityById = async (req, res) => {
+  try {
+    const { activityCode } = req.params;
+    const activity = await ActivityModel.findOne({
+      activityCode: activityCode.toUpperCase(),
+    });
+
+    if (!activity)
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Activity not found"));
+
+    // res.json(employee);
+    res.status(200).json(httpStatus.httpSuccessStatus(activity));
+  } catch (error) {
+    res.status(400).json(httpStatus.httpErrorStatus(error.message));
+  }
+};
+
+const DeleteActivity = async (req, res) => {
+  try {
+    const { activityCode } = req.params;
+    const activity = await ActivityModel.findOneAndDelete({
+      activityCode: activityCode.toUpperCase(),
+    });
+
+    if (!activity)
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Activity not found"));
+
+    res.status(200).json(httpStatus.httpSuccessStatus("Activity deleted successfully"));
+  } catch (error) {
+    res.status(400).json(httpStatus.httpErrorStatus(error.message));
+  }
+}
+
+const UpdateActivity = async (req, res) => {
+  try {
+    const { activityCode } = req.params;
+    const UpdateActivity = await ActivityModel.findOneAndUpdate(
+      { activityCode: activityCode.toUpperCase() },
+      {$set : req.body },
+      { new: true }
+
+    )
+    if (!UpdateActivity)
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Activity not found"));
+    
+    res.status(200).json(httpStatus.httpSuccessStatus(UpdateActivity)) ; 
+  } catch (error) {
+    res.status(400).json(httpStatus.httpErrorStatus(error.message));
+  }
+}
+
 module.exports = {
   AddNewActivity,
   GetAllActivites,
-  //GetActivityById,
-  // DeleteActivity,
-  // UpdateActivity,
+  GetActivityById,
+  DeleteActivity,
+  UpdateActivity,
 };
