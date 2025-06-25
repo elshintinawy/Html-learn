@@ -71,31 +71,89 @@ const DeleteActivity = async (req, res) => {
         .status(404)
         .json(httpStatus.httpFaliureStatus("Activity not found"));
 
-    res.status(200).json(httpStatus.httpSuccessStatus("Activity deleted successfully"));
+    res
+      .status(200)
+      .json(httpStatus.httpSuccessStatus("Activity deleted successfully"));
   } catch (error) {
     res.status(400).json(httpStatus.httpErrorStatus(error.message));
   }
-}
+};
 
-const UpdateActivity = async (req, res) => {
+
+const updatableFieldsByRole = {
+    'admin': [
+        'activityCode', 'activityName', 'executingCompany', 'consultant',
+        'governorate', 'fundingType', 'projectCategory', 'estimatedValue',
+        'contractualValue', 'disbursedAmount', 'assignmentDate',
+        'completionDate', 'receptionDate', 'executionStatus', 'progress', 'status'
+    ],
+    'manager': [
+        'activityName', 'executingCompany', 'consultant', 'assignmentDate',
+        'completionDate', 'receptionDate', 'executionStatus', 'progress'
+    ],
+    'financial': [
+        'estimatedValue', 'contractualValue', 'disbursedAmount'
+    ],
+    'employee': [] 
+};
+
+/* const UpdateActivity = async (req, res) => {
   try {
     const { activityCode } = req.params;
     const UpdateActivity = await ActivityModel.findOneAndUpdate(
       { activityCode: activityCode.toUpperCase() },
-      {$set : req.body },
+      { $set: req.body },
       { new: true }
-
-    )
+    );
     if (!UpdateActivity)
       return res
         .status(404)
         .json(httpStatus.httpFaliureStatus("Activity not found"));
-    
-    res.status(200).json(httpStatus.httpSuccessStatus(UpdateActivity)) ; 
+
+    res.status(200).json(httpStatus.httpSuccessStatus(UpdateActivity));
   } catch (error) {
     res.status(400).json(httpStatus.httpErrorStatus(error.message));
   }
-}
+}; */
+
+ const UpdateActivity = async (req, res) => {
+
+    try {
+        const { activityCode } = req.params;
+        const employeeRole = req.currentEmployee.role; 
+
+        const activityToUpdate = await ActivityModel.findOne({
+            activityCode: activityCode.toUpperCase(),
+        });
+
+        if (!activityToUpdate) {
+            return res.status(404).json(httpStatus.httpFaliureStatus("Activity not found"));
+        }
+
+        const allowedFields = updatableFieldsByRole[employeeRole];
+        Object.keys(req.body).forEach(key => {
+            if (allowedFields.includes(key)) {
+                activityToUpdate[key] = req.body[key];
+            }
+            else {
+                return res.status(403).json(
+                    httpStatus.httpFaliureStatus(`You are not allowed to update the field: ${key}`)
+                );
+            }
+        });
+
+        const updatedActivity = await activityToUpdate.save();
+        res.status(200).json(
+            httpStatus.httpSuccessStatus(updatedActivity)
+        );
+
+    } catch (error) {
+        res.status(400).json(httpStatus.httpErrorStatus(error.message));
+    }
+}; 
+
+
+
 
 module.exports = {
   AddNewActivity,

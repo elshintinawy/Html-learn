@@ -1,14 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const controllers = require("../controllers/activity_controllers");
-/* const allowedTo = require("../middlewares/allowedTo");
-const verifyLogin = require("../middlewares/verifyLogin"); */
+const verifyLogin = require("../middlewares/verifyLogin");
+const allowedTo = require("../middlewares/allowedTo");
+const userRoles = require("../utils/user_roles");
 
 
 router.post("/", controllers.AddNewActivity);
 router.get("/", controllers.GetAllActivites);
 router.get("/:activityCode", controllers.GetActivityById);
 router.delete("/deleteActivity/:activityCode", controllers.DeleteActivity);
-router.patch("/UpdateActivity/:activityCode", controllers.UpdateActivity);
-
+router.put("/UpdateActivity/:activityCode",
+  verifyLogin,
+  allowedTo(userRoles.ADMIN, userRoles.MANAGER, userRoles.FINANCIAL),
+  controllers.UpdateActivity
+);
 module.exports = router;

@@ -1,14 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
-  if (!document.getElementById("projects-table-body")) {
+  // التأكد من أننا في الصفحة الصحيحة (لوحة التحكم)
+  if (!document.getElementById("chart1-container")) {
     return;
   }
 
+  // --- 1. تعريف العناصر وعناوين API ---
   const projectsTableBody = document.getElementById("projects-table-body");
   const chart1Container = document.getElementById("chart1-container");
   const chart2Container = document.getElementById("chart2-container");
-  const PROJECTS_API_URL = "http://localhost:4000/activity/";
+  const API_URL = "http://localhost:4000/activity/";
+
+  // --- 2. دوال مساعدة ودوال تحديث الواجهة ---
+
+  function getProgressBarColor(percentage, status) {
+    if (status === "متأخر") {
+      return "#dc3545"; // Bootstrap Danger Red
+    }
+    const red = { r: 220, g: 53, b: 69 };
+    const blue = { r: 13, g: 110, b: 253 };
+    const green = { r: 25, g: 135, b: 84 };
+
+    const interpolateColor = (color1, color2, factor) => {
+      const r = Math.round(color1.r + factor * (color2.r - color1.r));
+      const g = Math.round(color1.g + factor * (color2.g - color1.g));
+      const b = Math.round(color1.b + factor * (color2.b - color1.b));
+      return `rgb(${r}, ${g}, ${b})`;
+    };
+
+    if (percentage >= 100) {
+      return `rgb(${green.r}, ${green.g}, ${green.b})`;
+    }
+    if (percentage >= 50) {
+      const factor = (percentage - 50) / 50;
+      return interpolateColor(blue, green, factor);
+    }
+    const factor = percentage / 50;
+    return interpolateColor(red, blue, factor);
+  }
 
   function renderCharts() {
+    // بيانات وهمية للرسوم البيانية
     const mockChartData = {
       status: { labels: ["قيد التنفيذ", "مكتمل", "متأخر"], values: [15, 9, 4] },
       governorates: {
@@ -54,9 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTable(projects) {
     projectsTableBody.innerHTML = "";
-
     if (!projects || projects.length === 0) {
-      projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">لا توجد مشاريع لعرضها حاليًا.</td></tr>`;
+      projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">لا توجد مشاريع لعرضها.</td></tr>`;
       return;
     }
 
@@ -64,66 +94,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
     latestFiveProjects.forEach((project) => {
       const row = document.createElement("tr");
+      const percentage = project.progress || project.executionStatus || 0;
+      const barColor = getProgressBarColor(percentage, project.status);
+
+      // ### تم تحديث هذا الجزء لربط زر التعديل ###
       row.innerHTML = `
-                <td>${project.name || "مشروع بدون اسم"}</td>
-                <td><span class="badge bg-secondary bg-opacity-10 text-secondary-emphasis">${
-                  project.category || "غير محدد"
+                <td>${project.activityName || "مشروع بدون اسم"}</td>
+                <td><span class="badge bg-light text-dark fw-normal">${
+                  project.projectCategory || "غير محدد"
                 }</span></td>
-                <td><div class="progress" style="height: 10px;"><div class="progress-bar" style="width: ${
-                  project.progress || 0
-                }%;"></div></div></td>
                 <td>
-                    <a href="project-details.html?id=${
-                      project.id
+                    <div class="progress" role="progressbar" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="height: 20px; font-size: 0.8rem;">
+                        <div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">
+                            ${percentage}%
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <a href="project-details.html?code=${
+                      project.activityCode
                     }" class="action-btn" title="عرض التفاصيل"><i class="fas fa-eye text-info"></i></a>
-                    <button class="action-btn" title="تعديل"><i class="fas fa-pen text-primary"></i></button>
-                    <button class="action-btn" title="حذف" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal"><i class="fas fa-trash text-danger"></i></button>
+                    <a href="edit-project.html?code=${
+                      project.activityCode
+                    }" class="action-btn" title="تعديل"><i class="fas fa-pen text-primary"></i></a>
+                    <button class="action-btn delete-btn" data-code="${
+                      project.activityCode
+                    }" title="حذف" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal"><i class="fas fa-trash text-danger"></i></button>
                 </td>
             `;
+
       projectsTableBody.appendChild(row);
     });
   }
 
   function displayError(message) {
-    projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${message}</td></tr>`;
-    chart1Container.innerHTML = `<div class="text-danger">${message}</div>`;
+    projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger p-4">${message}</td></tr>`;
+    chart1Container.innerHTML = `<div class="text-danger p-4 text-center d-flex align-items-center justify-content-center h-100">${message}</div>`;
     chart2Container.innerHTML = "";
   }
 
   async function initializeDashboard() {
-    const token = localStorage.getItem("loggedInUserToken");
-
-    if (!token) {
-      return;
-    }
-
     try {
-      const response = await fetch(PROJECTS_API_URL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const token = localStorage.getItem("loggedInUserToken");
+
+      const response = await fetch(API_URL, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
+      const apiResponse = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
         throw new Error(
-          errorData.message || `خطأ من السيرفر: ${response.status}`
+          apiResponse.data || apiResponse.message || "فشل جلب البيانات"
         );
       }
 
-      const apiResponse = await response.json();
-
-      const projects = apiResponse.data;
-
-      renderTable(projects);
-      renderCharts();
+      if (
+        apiResponse &&
+        apiResponse.data &&
+        Array.isArray(apiResponse.data.activities)
+      ) {
+        renderTable(apiResponse.data.activities);
+        renderCharts();
+      } else {
+        throw new Error("شكل البيانات المستلمة من السيرفر غير متوقع.");
+      }
     } catch (error) {
-      console.error("فشل تحميل بيانات لوحة التحكم:", error);
-      displayError(
-        "فشل الاتصال بالسيرفر. الرجاء التأكد من أن الواجهة الخلفية تعمل."
-      );
+      console.error("فشل تحميل لوحة التحكم:", error);
+      displayError(error.message);
     }
   }
 
