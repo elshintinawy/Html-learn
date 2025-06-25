@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ### بداية التصحيح 1: إعادة المفاتيح للغة العربية لتتطابق مع الباك اند ###
   const permissions = {
-    ادمن: [
+    admin: [
       "activityCode",
       "activityName",
       "executingCompany",
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "progress",
       "status",
     ],
-    "انشاء وتخطيط": [
+    manager: [
       "activityName",
       "executingCompany",
       "consultant",
@@ -37,8 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "executionStatus",
       "progress",
     ],
-    مالي: ["estimatedValue", "contractualValue", "disbursedAmount"],
-    مستخدم: [],
+    financial: ["estimatedValue", "contractualValue", "disbursedAmount"],
+    employee: [],
   };
   // ### نهاية التصحيح 1 ###
 
