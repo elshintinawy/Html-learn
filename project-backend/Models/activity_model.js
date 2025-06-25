@@ -62,7 +62,6 @@ const activitySchema = new mongoose.Schema(
       },
     },
 
-    // ### نهاية: الحقول الجديدة التي تمت إضافتها ###
 
     executingCompany: {
       // الشركة المنفذة
