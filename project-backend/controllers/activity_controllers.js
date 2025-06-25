@@ -92,7 +92,7 @@ const updatableFieldsByRole = {
         'completionDate', 'receptionDate', 'executionStatus', 'progress'
     ],
     'financial': [
-        'estimatedValue', 'contractualValue', 'disbursedAmount'
+        'estimatedValue', 'contractualValue', 'disbursedAmount', 'undisbursedAmount'
     ],
     'employee': [] 
 };

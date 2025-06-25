@@ -14,11 +14,6 @@ app.use("/auth", authRoutes);
 app.use("/employee", employeeRoutes);
 app.use("/activity", activityRoutes);
 
-/* app.all("*", (req, res, next) => {
-  return res
-    .status(404)
-    .json({message :"Route not found"});
-}) */
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");

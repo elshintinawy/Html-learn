@@ -23,22 +23,23 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.data || "حدث خطأ غير متوقع");
       }
 
       const employeeData = result.data;
-      console.log("تم تسجيل الدخول بنجاح:", employeeData);
 
+      // ### بداية: هذا هو الجزء الذي تم تصحيحه ###
+      // الآن نقوم بحفظ التوكن، الاسم، والصلاحية
       localStorage.setItem("loggedInUserToken", employeeData.token);
       localStorage.setItem("loggedInUser", employeeData.name);
+      localStorage.setItem("userRole", employeeData.role); // <-- هذا هو السطر الجديد والمهم
+      // ### نهاية: الجزء الذي تم تصحيحه ###
 
       window.location.href = "index.html";
     } catch (error) {
       errorMessageDiv.textContent = error.message;
       errorMessageDiv.classList.remove("d-none");
-
       loginButton.disabled = false;
       loginButton.innerHTML = "تسجيل الدخول";
     }

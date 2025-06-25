@@ -9,8 +9,8 @@ const userRoles = require("../utils/user_roles");
 router.post("/", controllers.AddNewActivity);
 router.get("/", controllers.GetAllActivites);
 router.get("/:activityCode", controllers.GetActivityById);
-router.delete("/deleteActivity/:activityCode", controllers.DeleteActivity);
-router.put("/UpdateActivity/:activityCode",
+router.delete("/:activityCode", controllers.DeleteActivity);
+router.put("/:activityCode",
   verifyLogin,
   allowedTo(userRoles.ADMIN, userRoles.MANAGER, userRoles.FINANCIAL),
   controllers.UpdateActivity
