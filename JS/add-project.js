@@ -1,12 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const addProjectForm = document.getElementById("addProjectForm");
-  if (!addProjectForm) return; 
+  if (!addProjectForm) return;
 
   const saveButton = document.getElementById("save-project-button");
   const toastContainer = document.querySelector(".toast-container");
-  const API_URL = "http://localhost:4000/activity/"; 
-
+  const API_URL = "http://localhost:4000/activity/";
 
   function showToast(message, type = "success") {
     const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
@@ -26,13 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
   addProjectForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
     saveButton.disabled = true;
     saveButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> جاري الحفظ...`;
-
 
     const formData = {
       activityCode: document.getElementById("activityCode").value,
@@ -40,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       executingCompany: document.getElementById("executingCompany").value,
       consultant: document.getElementById("consultant").value,
       governorate: document.getElementById("governorate").value,
+      status: "قيد التنفيذ",
       fundingType: document.getElementById("fundingType").value,
       projectCategory: document.getElementById("projectCategory").value,
       estimatedValue: document.getElementById("estimatedValue").value || 0,
@@ -48,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
       assignmentDate: document.getElementById("assignmentDate").value,
       completionDate: document.getElementById("completionDate").value,
       receptionDate: document.getElementById("receptionDate").value,
+      progress: 0,
     };
 
     const token = localStorage.getItem("loggedInUserToken");
@@ -64,12 +62,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
       if (!response.ok) {
-        
         throw new Error(result.data || "حدث خطأ أثناء حفظ المشروع.");
       }
 
       showToast("تمت إضافة المشروع بنجاح!", "success");
-      addProjectForm.reset(); 
+      addProjectForm.reset();
     } catch (error) {
       showToast(error.message, "danger");
     } finally {

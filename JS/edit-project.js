@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userRole = localStorage.getItem("userRole");
   const token = localStorage.getItem("loggedInUserToken");
 
-  // ### بداية التصحيح 1: إعادة المفاتيح للغة العربية لتتطابق مع الباك اند ###
+  // كائن الصلاحيات
   const permissions = {
     admin: [
       "activityCode",
@@ -36,20 +36,40 @@ document.addEventListener("DOMContentLoaded", () => {
       "receptionDate",
       "executionStatus",
       "progress",
+      "status",
     ],
     financial: ["estimatedValue", "contractualValue", "disbursedAmount"],
     employee: [],
   };
-  // ### نهاية التصحيح 1 ###
-
   const allowedFields = permissions[userRole] || [];
 
+  // دالة لجلب كود المشروع من الرابط
   function getProjectCodeFromUrl() {
     return new URLSearchParams(window.location.search).get("code");
   }
 
+  // دالة لإظهار الإشعارات المنبثقة (Toasts)
+  function showToast(message, type = "success") {
+    const toastContainer = document.querySelector(".toast-container");
+    const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
+    const toastColor = type === "success" ? "bg-success" : "bg-danger";
+    const toastHTML = `
+            <div id="${toastId}" class="toast align-items-center text-white ${toastColor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>`;
+    if (toastContainer) {
+      toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+      const toastElement = document.getElementById(toastId);
+      const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+      toast.show();
+    }
+  }
+
+  // دالة لرسم النموذج وتطبيق الصلاحيات
   function renderForm(project) {
-    // ### بداية التصحيح 2: تعديل ترتيب الحقول ###
     formContainer.innerHTML = `
             <form id="editProjectForm">
                 <div class="row g-3">
@@ -63,28 +83,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="col-md-6"><label for="consultant" class="form-label">الاستشاري</label><input type="text" id="consultant" class="form-control" value="${
                       project.consultant || ""
                     }"></div>
-                    <div class="col-md-6"><label for="progress" class="form-label">نسبة الإنجاز</label><input type="number" id="progress" class="form-control" value="${
-                      project.progress || 0
-                    }"></div>
-
-                    <h5 class="form-section-title">البيانات المالية</h5>
-                    <div class="col-md-4"><label for="contractualValue" class="form-label">القيمة التعاقدية</label><input type="number" id="contractualValue" class="form-control" value="${
-                      project.contractualValue || 0
-                    }"></div>
+                    <div class="col-md-6"><label for="status" class="form-label">حالة المشروع</label><select id="status" class="form-select"><option value="قيد التنفيذ">قيد التنفيذ</option><option value="مكتمل">مكتمل</option><option value="متأخر">متأخر</option></select></div>
+                    
+                    <h5 class="form-section-title">البيانات المالية والزمنية</h5>
                     <div class="col-md-4"><label for="estimatedValue" class="form-label">القيمة التقديرية</label><input type="number" id="estimatedValue" class="form-control" value="${
                       project.estimatedValue || 0
+                    }"></div>
+                    <div class="col-md-4"><label for="contractualValue" class="form-label">القيمة التعاقدية</label><input type="number" id="contractualValue" class="form-control" value="${
+                      project.contractualValue || 0
                     }"></div>
                     <div class="col-md-4"><label for="disbursedAmount" class="form-label">المنصرف</label><input type="number" id="disbursedAmount" class="form-control" value="${
                       project.disbursedAmount || 0
                     }"></div>
-
-                    <h5 class="form-section-title">التواريخ</h5>
-                    <div class="col-md-4"><label for="assignmentDate" class="form-label">تاريخ الاسناد</label><input type="date" id="assignmentDate" class="form-control" value="${
-                      project.assignmentDate
-                        ? new Date(project.assignmentDate)
-                            .toISOString()
-                            .split("T")[0]
-                        : ""
+                    <div class="col-md-4"><label for="progress" class="form-label">نسبة الإنجاز</label><input type="number" id="progress" class="form-control" value="${
+                      project.progress || 0
                     }"></div>
                     <div class="col-md-4"><label for="completionDate" class="form-label">تاريخ النهو</label><input type="date" id="completionDate" class="form-control" value="${
                       project.completionDate
@@ -100,14 +112,15 @@ document.addEventListener("DOMContentLoaded", () => {
                             .split("T")[0]
                         : ""
                     }"></div>
-                    
-                    <div class="col-12 mt-4 text-center"><button type="submit" class="btn btn-primary px-4" id="save-changes-button">حفظ التعديلات</button></div>
+
+                    <div class="col-12 mt-4 text-center">
+                        <button type="submit" class="btn btn-primary px-4" id="save-changes-button">حفظ التعديلات</button>
+                    </div>
                 </div>
             </form>
         `;
-    // ### نهاية التصحيح 2 ###
+    document.getElementById("status").value = project.status || "قيد التنفيذ";
 
-    // تطبيق الصلاحيات: تعطيل الحقول غير المسموح بها
     const allInputs = formContainer.querySelectorAll("input, select");
     allInputs.forEach((input) => {
       if (input.id && !allowedFields.includes(input.id)) {
@@ -118,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     attachSubmitListener(project.activityCode);
   }
 
+  // دالة إرسال التعديلات
   function attachSubmitListener(activityCode) {
     const editForm = document.getElementById("editProjectForm");
     editForm.addEventListener("submit", async (e) => {
@@ -125,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const saveButton = document.getElementById("save-changes-button");
       saveButton.disabled = true;
       saveButton.innerHTML = "جاري الحفظ...";
+
       const updatedData = {};
       allowedFields.forEach((fieldId) => {
         const input = document.getElementById(fieldId);
@@ -132,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updatedData[fieldId] = input.value;
         }
       });
+
       try {
         const response = await fetch(
           `http://localhost:4000/activity/${activityCode}`,
@@ -146,17 +162,21 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         const result = await response.json();
         if (!response.ok) throw new Error(result.data || "فشل تحديث المشروع");
-        alert("تم حفظ التعديلات بنجاح!");
-        window.location.href = "index.html";
+
+        showToast("تم حفظ التعديلات بنجاح!", "success");
+        // الانتظار ثانيتين ثم إعادة التوجيه
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 2000);
       } catch (error) {
-        alert(`خطأ: ${error.message}`);
-      } finally {
+        showToast(`خطأ: ${error.message}`, "danger");
         saveButton.disabled = false;
         saveButton.innerHTML = "حفظ التعديلات";
       }
     });
   }
 
+  // الدالة الرئيسية التي تبدأ كل شيء
   async function initializePage() {
     const activityCode = getProjectCodeFromUrl();
     if (!activityCode) {
@@ -181,3 +201,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initializePage();
 });
+
+/* const permissions = {
+    admin: [
+      "activityCode",
+      "activityName",
+      "executingCompany",
+      "consultant",
+      "governorate",
+      "fundingType",
+      "projectCategory",
+      "estimatedValue",
+      "contractualValue",
+      "disbursedAmount",
+      "assignmentDate",
+      "completionDate",
+      "receptionDate",
+      "executionStatus",
+      "progress",
+      "status",
+    ],
+    manager: [
+      "activityName",
+      "executingCompany",
+      "consultant",
+      "assignmentDate",
+      "completionDate",
+      "receptionDate",
+      "executionStatus",
+      "progress",
+      "status",
+    ],
+    financial: ["estimatedValue", "contractualValue", "disbursedAmount"],
+    employee: [],
+  }; */

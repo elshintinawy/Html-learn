@@ -26,7 +26,7 @@ const AddNewActivity = async (req, res) => {
   }
 };
 
-const GetAllActivites = async (req, res) => {
+/* const GetAllActivites = async (req, res) => {
   try {
     const activities = await ActivityModel.find({}, { __v: 0, _id: 0 });
     const activityCount = await ActivityModel.countDocuments({});
@@ -38,7 +38,7 @@ const GetAllActivites = async (req, res) => {
   } catch (error) {
     res.status(500).json(httpStatus.httpErrorStatus(error));
   }
-};
+}; */
 
 const GetActivityById = async (req, res) => {
   try {
@@ -152,6 +152,48 @@ const updatableFieldsByRole = {
     }
 }; 
 
+
+const GetAllActivites = async (req, res) => {
+    try {
+        const query = req.query;
+        const filter = {};
+        if (query.name) {
+            filter.activityName = { $regex: query.name, $options: 'i' };
+        }
+        if (query.governorate && query.governorate !== 'الكل') {
+            filter.governorate = query.governorate;
+        }
+        if (query.status && query.status !== 'الكل') {
+            filter.status = query.status; 
+        }
+        if (query.year && query.year !== 'الكل') {
+          
+            const year = parseInt(query.year);
+            const startDate = new Date(year, 0, 1); 
+            const endDate = new Date(year, 11, 31, 23, 59, 59); 
+            
+            
+            filter.assignmentDate = { $gte: startDate, $lte: endDate };
+        }
+        
+
+        console.log("Filtering with:", filter); 
+
+
+        const activities = await ActivityModel.find(filter, { __v: 0, _id: 0 });
+        const activityCount = await ActivityModel.countDocuments(filter);
+        
+        const responseData = {
+            total: activityCount,
+            activities: activities,
+        };
+
+        res.status(200).json(httpStatus.httpSuccessStatus(responseData));
+
+    } catch (error) {
+        res.status(500).json(httpStatus.httpErrorStatus(error.message));
+    }
+};
 
 
 

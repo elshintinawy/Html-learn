@@ -1,45 +1,36 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // التأكد من أننا في الصفحة الصحيحة (لوحة التحكم)
-  if (!document.getElementById("chart1-container")) {
+  // التحقق من أننا في الصفحة الصحيحة (لوحة التحكم)
+  if (!document.getElementById("projects-table-body")) {
     return;
   }
 
-  // --- 1. تعريف العناصر وعناوين API ---
+
   const projectsTableBody = document.getElementById("projects-table-body");
   const chart1Container = document.getElementById("chart1-container");
   const chart2Container = document.getElementById("chart2-container");
+  const deleteConfirmBtn = document.getElementById("confirmDeleteBtn");
+  const filterButton = document.getElementById("filter-button");
   const API_URL = "http://localhost:4000/activity/";
+  let codeToDelete = null;
 
-  // --- 2. دوال مساعدة ودوال تحديث الواجهة ---
+
 
   function getProgressBarColor(percentage, status) {
-    if (status === "متأخر") {
-      return "#dc3545"; // Bootstrap Danger Red
-    }
+    if (status === "متأخر") return "#dc3545";
     const red = { r: 220, g: 53, b: 69 };
     const blue = { r: 13, g: 110, b: 253 };
     const green = { r: 25, g: 135, b: 84 };
-
-    const interpolateColor = (color1, color2, factor) => {
-      const r = Math.round(color1.r + factor * (color2.r - color1.r));
-      const g = Math.round(color1.g + factor * (color2.g - color1.g));
-      const b = Math.round(color1.b + factor * (color2.b - color1.b));
-      return `rgb(${r}, ${g}, ${b})`;
-    };
-
-    if (percentage >= 100) {
-      return `rgb(${green.r}, ${green.g}, ${green.b})`;
-    }
-    if (percentage >= 50) {
-      const factor = (percentage - 50) / 50;
-      return interpolateColor(blue, green, factor);
-    }
-    const factor = percentage / 50;
-    return interpolateColor(red, blue, factor);
+    const interpolateColor = (c1, c2, f) =>
+      `rgb(${Math.round(c1.r + f * (c2.r - c1.r))}, ${Math.round(
+        c1.g + f * (c2.g - c1.g)
+      )}, ${Math.round(c1.b + f * (c2.b - c1.b))})`;
+    if (percentage >= 100) return `rgb(${green.r}, ${green.g}, ${green.b})`;
+    if (percentage >= 50)
+      return interpolateColor(blue, green, (percentage - 50) / 50);
+    return interpolateColor(red, blue, percentage / 50);
   }
 
   function renderCharts() {
-    // بيانات وهمية للرسوم البيانية
     const mockChartData = {
       status: { labels: ["قيد التنفيذ", "مكتمل", "متأخر"], values: [15, 9, 4] },
       governorates: {
@@ -47,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
         values: [8, 5, 6, 4],
       },
     };
-
     chart1Container.innerHTML = '<canvas id="projectStatusChart"></canvas>';
     const ctx1 = chart1Container.querySelector("canvas").getContext("2d");
     new Chart(ctx1, {
@@ -86,28 +76,22 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTable(projects) {
     projectsTableBody.innerHTML = "";
     if (!projects || projects.length === 0) {
-      projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">لا توجد مشاريع لعرضها.</td></tr>`;
+      projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">لا توجد مشاريع تطابق البحث.</td></tr>`;
       return;
     }
 
-    const latestFiveProjects = projects.slice(-5).reverse();
-
-    latestFiveProjects.forEach((project) => {
+    projects.reverse().forEach((project) => {
       const row = document.createElement("tr");
       const percentage = project.progress || project.executionStatus || 0;
       const barColor = getProgressBarColor(percentage, project.status);
-
-      // ### تم تحديث هذا الجزء لربط زر التعديل ###
       row.innerHTML = `
                 <td>${project.activityName || "مشروع بدون اسم"}</td>
                 <td><span class="badge bg-light text-dark fw-normal">${
                   project.projectCategory || "غير محدد"
                 }</span></td>
                 <td>
-                    <div class="progress" role="progressbar" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="height: 20px; font-size: 0.8rem;">
-                        <div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">
-                            ${percentage}%
-                        </div>
+                    <div class="progress" role="progressbar" style="height: 20px; font-size: 0.8rem;">
+                        <div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">${percentage}%</div>
                     </div>
                 </td>
                 <td>
@@ -122,30 +106,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     }" title="حذف" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal"><i class="fas fa-trash text-danger"></i></button>
                 </td>
             `;
-
       projectsTableBody.appendChild(row);
     });
   }
 
-  function displayError(message) {
+  function displayErrorInTable(message) {
     projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger p-4">${message}</td></tr>`;
-    chart1Container.innerHTML = `<div class="text-danger p-4 text-center d-flex align-items-center justify-content-center h-100">${message}</div>`;
-    chart2Container.innerHTML = "";
   }
 
-  async function initializeDashboard() {
+
+  async function fetchAndRenderProjects(filters = {}) {
+
+    projectsTableBody.innerHTML = `<tr><td><p class="skeleton skeleton-text mb-0"></p></td><td><p class="skeleton skeleton-text mb-0"></p></td><td><div class="skeleton" style="height:10px; border-radius: 5px;"></div></td><td><p class="skeleton skeleton-text mb-0" style="width: 110px;"></p></td></tr>`;
+
     try {
       const token = localStorage.getItem("loggedInUserToken");
+      const queryParams = new URLSearchParams(filters).toString();
+      const fetchUrl = `${API_URL}?${queryParams}`;
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(fetchUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const apiResponse = await response.json();
+
       if (!response.ok) {
-        throw new Error(
-          apiResponse.data || apiResponse.message || "فشل جلب البيانات"
-        );
+        throw new Error(apiResponse.data || "فشل جلب البيانات");
       }
 
       if (
@@ -154,15 +139,81 @@ document.addEventListener("DOMContentLoaded", () => {
         Array.isArray(apiResponse.data.activities)
       ) {
         renderTable(apiResponse.data.activities);
-        renderCharts();
       } else {
-        throw new Error("شكل البيانات المستلمة من السيرفر غير متوقع.");
+        renderTable([]); 
       }
     } catch (error) {
-      console.error("فشل تحميل لوحة التحكم:", error);
-      displayError(error.message);
+      console.error("فشل تحميل البيانات:", error);
+      displayErrorInTable(error.message);
     }
   }
 
-  initializeDashboard();
+
+  filterButton.addEventListener("click", () => {
+    const scrollPosition = window.scrollY; 
+
+    filterButton.disabled = true;
+    filterButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+    const filters = {
+      name: document.getElementById("projectNameFilter").value,
+      governorate: document.getElementById("governorateFilter").value,
+      year: document.getElementById("yearFilter").value,
+      status: document.getElementById("statusFilter").value,
+    };
+
+    Object.keys(filters).forEach((key) => {
+      if (!filters[key] || filters[key] === "الكل") delete filters[key];
+    });
+
+    fetchAndRenderProjects(filters).finally(() => {
+      filterButton.disabled = false;
+      filterButton.innerHTML = `<i class="fas fa-filter"></i>`;
+      window.scrollTo(0, scrollPosition); 
+    });
+  });
+
+
+  projectsTableBody.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest(".delete-btn");
+    if (deleteButton) {
+      codeToDelete = deleteButton.dataset.code;
+    }
+  });
+
+  deleteConfirmBtn.addEventListener("click", async () => {
+    if (!codeToDelete) return;
+    const token = localStorage.getItem("loggedInUserToken");
+    try {
+      const response = await fetch(`${API_URL}deleteActivity/${codeToDelete}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(result.data || result.message || "فشل حذف المشروع.");
+      alert("تم حذف المشروع بنجاح!");
+      fetchAndRenderProjects(); 
+    } catch (error) {
+      alert(`خطأ: ${error.message}`);
+    } finally {
+      const modalElement = document.getElementById("deleteConfirmationModal");
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+      codeToDelete = null;
+    }
+  });
+
+
+  function initializePage() {
+    chart1Container.innerHTML = `<span class="spinner-border text-primary"></span>`;
+    chart2Container.innerHTML = `<span class="spinner-border text-primary"></span>`;
+    renderCharts(); 
+    fetchAndRenderProjects(); 
+  }
+
+  initializePage();
 });

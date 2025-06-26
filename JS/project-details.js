@@ -1,26 +1,24 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // الكود المشترك للتحقق من المستخدم موجود في main.js ويعمل أولاً
-
   const mainContent = document.querySelector(".main-content");
+  const pageTitle = document.getElementById("project-name-header");
+  const formContainer = document.getElementById("form-container");
 
-  // دالة لقراءة كود النشاط من رابط الصفحة
   function getProjectCodeFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    // نقرأ الآن 'code' بدلاً من 'id'
     return params.get("code");
   }
 
   function renderProjectDetails(project) {
-    // ... نفس دالة عرض البيانات كما هي ...
-    document.getElementById(
-      "project-name-header"
-    ).textContent = `تفاصيل مشروع: ${project.activityName}`;
+    if (pageTitle)
+      pageTitle.textContent = `تفاصيل مشروع: ${project.activityName}`;
+
     document.getElementById("executingCompany").textContent =
       project.executingCompany || "N/A";
     document.getElementById("governorate").textContent =
       project.governorate || "N/A";
     document.getElementById("consultant").textContent =
       project.consultant || "N/A";
+
     document.getElementById("estimatedValue").textContent = `${(
       project.estimatedValue || 0
     ).toLocaleString()} جنيه`;
@@ -30,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("disbursedAmount").textContent = `${(
       project.disbursedAmount || 0
     ).toLocaleString()} جنيه`;
+
     document.getElementById("assignmentDate").textContent =
       project.assignmentDate
         ? new Date(project.assignmentDate).toLocaleDateString("ar-EG")
@@ -38,30 +37,43 @@ document.addEventListener("DOMContentLoaded", () => {
       project.completionDate
         ? new Date(project.completionDate).toLocaleDateString("ar-EG")
         : "N/A";
+
+    let statusColorClass = "bg-secondary";
+    const projectStatus = project.status || "قيد التنفيذ";
+
+    switch (projectStatus) {
+      case "قيد التنفيذ":
+        statusColorClass = "bg-primary";
+        break;
+      case "مكتمل":
+        statusColorClass = "bg-success";
+        break;
+      case "متأخر":
+        statusColorClass = "bg-danger";
+        break;
+    }
     document.getElementById(
       "status"
-    ).innerHTML = `<span class="badge bg-success">${
-      project.status || "قيد التنفيذ"
-    }</span>`;
+    ).innerHTML = `<span class="badge ${statusColorClass} p-2">${projectStatus}</span>`;
   }
 
   function displayError(message) {
-    mainContent.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+    const container = formContainer || mainContent;
+    if (container)
+      container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
   }
 
   async function fetchAndRenderProject() {
     const projectCode = getProjectCodeFromUrl();
     if (!projectCode) {
-      displayError("لم يتم تحديد كود المشروع في الرابط.");
+      displayError("لم يتم تحديد معرّف المشروع.");
       return;
     }
 
-    // بناء الرابط الصحيح الذي يتوقعه الباك اند
     const API_URL = `http://localhost:4000/activity/${projectCode}`;
     const token = localStorage.getItem("loggedInUserToken");
 
     try {
-      console.log(`جاري طلب المشروع صاحب الكود: ${projectCode}`);
       const response = await fetch(API_URL, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -71,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(result.data || "فشل جلب بيانات المشروع.");
       }
 
-      // نفترض أن الباك اند يعيد المشروع داخل data
       renderProjectDetails(result.data);
     } catch (error) {
       console.error("حدث خطأ:", error);
@@ -79,5 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  fetchAndRenderProject();
+  // تأكد من أننا في الصفحة الصحيحة قبل تشغيل الكود
+  if (document.getElementById("project-name-header")) {
+    fetchAndRenderProject();
+  }
 });

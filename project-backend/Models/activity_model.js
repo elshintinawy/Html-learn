@@ -62,6 +62,12 @@ const activitySchema = new mongoose.Schema(
       },
     },
 
+    status: {
+      //حاله النشاط
+      type: String,
+      enum: ['قيد التنفيذ', 'مكتمل', 'متأخر'],
+      default: "قيد التنفيذ",
+    },
 
     executingCompany: {
       // الشركة المنفذة
