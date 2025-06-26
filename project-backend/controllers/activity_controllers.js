@@ -79,22 +79,42 @@ const DeleteActivity = async (req, res) => {
   }
 };
 
-
 const updatableFieldsByRole = {
-    'admin': [
-        'activityCode', 'activityName', 'executingCompany', 'consultant',
-        'governorate', 'fundingType', 'projectCategory', 'estimatedValue',
-        'contractualValue', 'disbursedAmount', 'assignmentDate',
-        'completionDate', 'receptionDate', 'executionStatus', 'progress', 'status'
-    ],
-    'manager': [
-        'activityName', 'executingCompany', 'consultant', 'assignmentDate',
-        'completionDate', 'receptionDate', 'executionStatus', 'progress'
-    ],
-    'financial': [
-        'estimatedValue', 'contractualValue', 'disbursedAmount', 'undisbursedAmount'
-    ],
-    'employee': [] 
+  admin: [
+    "activityCode",
+    "activityName",
+    "executingCompany",
+    "consultant",
+    "governorate",
+    "fundingType",
+    "projectCategory",
+    "estimatedValue",
+    "contractualValue",
+    "disbursedAmount",
+    "assignmentDate",
+    "completionDate",
+    "receptionDate",
+    "executionStatus",
+    "progress",
+    "status",
+  ],
+  manager: [
+    "activityName",
+    "executingCompany",
+    "consultant",
+    "assignmentDate",
+    "completionDate",
+    "receptionDate",
+    "executionStatus",
+    "progress",
+  ],
+  financial: [
+    "estimatedValue",
+    "contractualValue",
+    "disbursedAmount",
+    "undisbursedAmount",
+  ],
+  employee: [],
 };
 
 /* const UpdateActivity = async (req, res) => {
@@ -116,86 +136,108 @@ const updatableFieldsByRole = {
   }
 }; */
 
- const UpdateActivity = async (req, res) => {
+const UpdateActivity = async (req, res) => {
+  try {
+    const { activityCode } = req.params;
+    const employeeRole = req.currentEmployee.role;
 
-    try {
-        const { activityCode } = req.params;
-        const employeeRole = req.currentEmployee.role; 
+    const activityToUpdate = await ActivityModel.findOne({
+      activityCode: activityCode.toUpperCase(),
+    });
 
-        const activityToUpdate = await ActivityModel.findOne({
-            activityCode: activityCode.toUpperCase(),
-        });
-
-        if (!activityToUpdate) {
-            return res.status(404).json(httpStatus.httpFaliureStatus("Activity not found"));
-        }
-
-        const allowedFields = updatableFieldsByRole[employeeRole];
-        Object.keys(req.body).forEach(key => {
-            if (allowedFields.includes(key)) {
-                activityToUpdate[key] = req.body[key];
-            }
-            else {
-                return res.status(403).json(
-                    httpStatus.httpFaliureStatus(`You are not allowed to update the field: ${key}`)
-                );
-            }
-        });
-
-        const updatedActivity = await activityToUpdate.save();
-        res.status(200).json(
-            httpStatus.httpSuccessStatus(updatedActivity)
-        );
-
-    } catch (error) {
-        res.status(400).json(httpStatus.httpErrorStatus(error.message));
+    if (!activityToUpdate) {
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Activity not found"));
     }
-}; 
 
+    const allowedFields = updatableFieldsByRole[employeeRole];
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        activityToUpdate[key] = req.body[key];
+      } else {
+        return res
+          .status(403)
+          .json(
+            httpStatus.httpFaliureStatus(
+              `You are not allowed to update the field: ${key}`
+            )
+          );
+      }
+    });
 
-const GetAllActivites = async (req, res) => {
-    try {
-        const query = req.query;
-        const filter = {};
-        if (query.name) {
-            filter.activityName = { $regex: query.name, $options: 'i' };
-        }
-        if (query.governorate && query.governorate !== 'الكل') {
-            filter.governorate = query.governorate;
-        }
-        if (query.status && query.status !== 'الكل') {
-            filter.status = query.status; 
-        }
-        if (query.year && query.year !== 'الكل') {
-          
-            const year = parseInt(query.year);
-            const startDate = new Date(year, 0, 1); 
-            const endDate = new Date(year, 11, 31, 23, 59, 59); 
-            
-            
-            filter.assignmentDate = { $gte: startDate, $lte: endDate };
-        }
-        
-
-        console.log("Filtering with:", filter); 
-
-
-        const activities = await ActivityModel.find(filter, { __v: 0, _id: 0 });
-        const activityCount = await ActivityModel.countDocuments(filter);
-        
-        const responseData = {
-            total: activityCount,
-            activities: activities,
-        };
-
-        res.status(200).json(httpStatus.httpSuccessStatus(responseData));
-
-    } catch (error) {
-        res.status(500).json(httpStatus.httpErrorStatus(error.message));
-    }
+    const updatedActivity = await activityToUpdate.save();
+    res.status(200).json(httpStatus.httpSuccessStatus(updatedActivity));
+  } catch (error) {
+    res.status(400).json(httpStatus.httpErrorStatus(error.message));
+  }
 };
 
+const uploadActivityImage = async (req, res) => {
+  try {
+    const { activityCode } = req.params;
+    const activity = await ActivityModel.findOne({
+      activityCode: activityCode.toUpperCase(),
+    });
 
+    if (!activity) {
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Activity not found"));
+    }
+
+    if (!req.file) {
+      return res
+        .status(400)
+        .json(httpStatus.httpFaliureStatus("No file uploaded"));
+    }
+
+    activity.image = req.file.path;
+    await activity.save();
+
+    res.status(200).json(httpStatus.httpSuccessStatus(activity));
+  } catch (error) {
+    res.status(500).json(httpStatus.httpErrorStatus(error.message));
+  }
+}
+
+const GetAllActivites = async (req, res) => {
+  try {
+    const query = req.query;
+    const filter = {};
+    if (query.name) {
+      filter.activityName = { $regex: query.name, $options: "i" };
+    }
+    if (query.governorate && query.governorate !== "الكل") {
+      filter.governorate = query.governorate;
+    }
+    if (query.status && query.status !== "الكل") {
+      filter.status = query.status;
+    }
+
+    if (query.activityCode) {
+      filter.activityCode = query.activityCode.toUpperCase();
+    }
+
+    if (query.fundingType && query.fundingType !== "الكل") {
+      filter.fundingType = query.fundingType;
+    }
+
+    console.log("Filtering with:", filter);
+
+    const activities = await ActivityModel.find(filter, { __v: 0, _id: 0 });
+    const activityCount = await ActivityModel.countDocuments(filter);
+
+    const responseData = {
+      total: activityCount,
+      activities: activities,
+    };
+
+    res.status(200).json(httpStatus.httpSuccessStatus(responseData));
+  } catch (error) {
+    res.status(500).json(httpStatus.httpErrorStatus(error.message));
+  }
+};
 
 module.exports = {
   AddNewActivity,
@@ -203,4 +245,5 @@ module.exports = {
   GetActivityById,
   DeleteActivity,
   UpdateActivity,
+  uploadActivityImage
 };

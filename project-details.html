@@ -26,7 +26,7 @@
           <span class="spinner-border spinner-border-sm"></span> جاري تحميل
           التفاصيل...
         </h2>
-        <a href="index.html" class="btn btn-outline-secondary"
+        <a href="dashboard.html" class="btn btn-outline-primary"
           ><i class="fas fa-arrow-right ms-2"></i> العودة للوحة التحكم</a
         >
       </div>
@@ -63,6 +63,16 @@
                 الجدول الزمني
               </button>
             </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#media-tab"
+                type="button"
+              >
+                الوسائط
+              </button>
+            </li>
           </ul>
         </div>
         <div class="card-body">
@@ -74,6 +84,10 @@
             >
               <h5 class="card-title mb-3">البيانات الأساسية</h5>
               <ul class="list-group list-group-flush details-list">
+                <li class="list-group-item d-flex justify-content-between py-2">
+                  <strong>كود المشروع:</strong>
+                  <span id="activityCode"></span>
+                </li>
                 <li class="list-group-item d-flex justify-content-between py-2">
                   <strong>الشركة المنفذة:</strong>
                   <span id="executingCompany"></span>
@@ -117,6 +131,10 @@
                 <li class="list-group-item d-flex justify-content-between py-2">
                   <strong>الحالة:</strong> <span id="status"></span>
                 </li>
+              </ul>
+            </div>
+            <div class="tab-pane fade" id="media-tab" role="tabpanel">
+             
               </ul>
             </div>
           </div>

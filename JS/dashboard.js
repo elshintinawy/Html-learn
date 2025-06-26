@@ -4,16 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-
   const projectsTableBody = document.getElementById("projects-table-body");
   const chart1Container = document.getElementById("chart1-container");
   const chart2Container = document.getElementById("chart2-container");
   const deleteConfirmBtn = document.getElementById("confirmDeleteBtn");
+  const toastContainer = document.querySelector(".toast-container");
   const filterButton = document.getElementById("filter-button");
   const API_URL = "http://localhost:4000/activity/";
   let codeToDelete = null;
-
-
 
   function getProgressBarColor(percentage, status) {
     if (status === "متأخر") return "#dc3545";
@@ -28,6 +26,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (percentage >= 50)
       return interpolateColor(blue, green, (percentage - 50) / 50);
     return interpolateColor(red, blue, percentage / 50);
+  }
+
+  function showToast(message, type = "success") {
+    if (!toastContainer) {
+      console.error("Toast container not found!");
+      alert(message); // fallback to alert
+      return;
+    }
+    const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
+    const toastColor = type === "success" ? "bg-success" : "bg-danger";
+    const toastHTML = `
+            <div id="${toastId}" class="toast align-items-center text-white ${toastColor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>`;
+    toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toastElement.addEventListener("hidden.bs.toast", () => {
+      toastElement.remove();
+    });
+    toast.show();
   }
 
   function renderCharts() {
@@ -76,24 +98,23 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTable(projects) {
     projectsTableBody.innerHTML = "";
     if (!projects || projects.length === 0) {
-      projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">لا توجد مشاريع تطابق البحث.</td></tr>`;
+      projectsTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">لا توجد مشاريع تطابق البحث.</td></tr>`;
       return;
     }
-
     projects.reverse().forEach((project) => {
       const row = document.createElement("tr");
-      const percentage = project.progress || project.executionStatus || 0;
+      const percentage = project.progress || 0;
       const barColor = getProgressBarColor(percentage, project.status);
+
       row.innerHTML = `
                 <td>${project.activityName || "مشروع بدون اسم"}</td>
                 <td><span class="badge bg-light text-dark fw-normal">${
                   project.projectCategory || "غير محدد"
                 }</span></td>
-                <td>
-                    <div class="progress" role="progressbar" style="height: 20px; font-size: 0.8rem;">
-                        <div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">${percentage}%</div>
-                    </div>
-                </td>
+                <td><span class="badge bg-info bg-opacity-25 text-info-emphasis">${
+                  project.fundingType || "غير محدد"
+                }</span></td>
+                <td><div class="progress" style="height: 20px; font-size: 0.8rem;"><div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">${percentage}%</div></div></td>
                 <td>
                     <a href="project-details.html?code=${
                       project.activityCode
@@ -106,17 +127,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     }" title="حذف" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal"><i class="fas fa-trash text-danger"></i></button>
                 </td>
             `;
+
       projectsTableBody.appendChild(row);
     });
   }
-
   function displayErrorInTable(message) {
     projectsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger p-4">${message}</td></tr>`;
   }
 
-
   async function fetchAndRenderProjects(filters = {}) {
-
     projectsTableBody.innerHTML = `<tr><td><p class="skeleton skeleton-text mb-0"></p></td><td><p class="skeleton skeleton-text mb-0"></p></td><td><div class="skeleton" style="height:10px; border-radius: 5px;"></div></td><td><p class="skeleton skeleton-text mb-0" style="width: 110px;"></p></td></tr>`;
 
     try {
@@ -140,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ) {
         renderTable(apiResponse.data.activities);
       } else {
-        renderTable([]); 
+        renderTable([]);
       }
     } catch (error) {
       console.error("فشل تحميل البيانات:", error);
@@ -148,9 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
   filterButton.addEventListener("click", () => {
-    const scrollPosition = window.scrollY; 
+    const scrollPosition = window.scrollY;
 
     filterButton.disabled = true;
     filterButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
@@ -158,8 +176,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const filters = {
       name: document.getElementById("projectNameFilter").value,
       governorate: document.getElementById("governorateFilter").value,
-      year: document.getElementById("yearFilter").value,
+      activityCode: document.getElementById("activityCodeFilter").value,
       status: document.getElementById("statusFilter").value,
+      fundingType: document.getElementById("fundingTypeFilter").value,
     };
 
     Object.keys(filters).forEach((key) => {
@@ -169,10 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchAndRenderProjects(filters).finally(() => {
       filterButton.disabled = false;
       filterButton.innerHTML = `<i class="fas fa-filter"></i>`;
-      window.scrollTo(0, scrollPosition); 
+      window.scrollTo(0, scrollPosition);
     });
   });
-
 
   projectsTableBody.addEventListener("click", (event) => {
     const deleteButton = event.target.closest(".delete-btn");
@@ -185,17 +203,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!codeToDelete) return;
     const token = localStorage.getItem("loggedInUserToken");
     try {
-      const response = await fetch(`${API_URL}deleteActivity/${codeToDelete}`, {
+      const response = await fetch(`${API_URL}${codeToDelete}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok)
         throw new Error(result.data || result.message || "فشل حذف المشروع.");
-      alert("تم حذف المشروع بنجاح!");
-      fetchAndRenderProjects(); 
+      showToast("تم حذف المشروع بنجاح!", "success");
+      fetchAndRenderProjects();
     } catch (error) {
-      alert(`خطأ: ${error.message}`);
+      showToast(`Error: ${error.message}`, "danger");
     } finally {
       const modalElement = document.getElementById("deleteConfirmationModal");
       const modal = bootstrap.Modal.getInstance(modalElement);
@@ -207,12 +225,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
   function initializePage() {
     chart1Container.innerHTML = `<span class="spinner-border text-primary"></span>`;
     chart2Container.innerHTML = `<span class="spinner-border text-primary"></span>`;
-    renderCharts(); 
-    fetchAndRenderProjects(); 
+    renderCharts();
+    fetchAndRenderProjects();
   }
 
   initializePage();

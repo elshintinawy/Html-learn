@@ -65,7 +65,7 @@ const activitySchema = new mongoose.Schema(
     status: {
       //حاله النشاط
       type: String,
-      enum: ['قيد التنفيذ', 'مكتمل', 'متأخر'],
+      enum: ["قيد التنفيذ", "مكتمل", "متأخر"],
       default: "قيد التنفيذ",
     },
 
@@ -131,6 +131,11 @@ const activitySchema = new mongoose.Schema(
       min: [0, "نسبة الإنجاز يجب أن تكون بين 0 و 100."],
       max: [100, "نسبة الإنجاز يجب أن تكون بين 0 و 100."],
       default: 0,
+    },
+
+    images: {
+      type: [String],
+      default: [],
     },
   },
   {

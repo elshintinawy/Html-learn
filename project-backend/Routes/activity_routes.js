@@ -5,7 +5,12 @@ const verifyLogin = require("../middlewares/verifyLogin");
 const allowedTo = require("../middlewares/allowedTo");
 const userRoles = require("../utils/user_roles");
 
-router.post("/", controllers.AddNewActivity);
+router.post(
+  "/",
+  verifyLogin,
+  allowedTo(userRoles.ADMIN, userRoles.MANAGER),
+  controllers.AddNewActivity
+);
 router.get("/", verifyLogin, controllers.GetAllActivites);
 router.get("/:activityCode", controllers.GetActivityById);
 router.delete(

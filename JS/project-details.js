@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (pageTitle)
       pageTitle.textContent = `تفاصيل مشروع: ${project.activityName}`;
 
+    document.getElementById("activityCode").textContent =
+      project.activityCode || "N/A";
+
     document.getElementById("executingCompany").textContent =
       project.executingCompany || "N/A";
     document.getElementById("governorate").textContent =

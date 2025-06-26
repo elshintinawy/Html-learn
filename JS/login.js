@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("userRole", employeeData.role); // <-- هذا هو السطر الجديد والمهم
       // ### نهاية: الجزء الذي تم تصحيحه ###
 
-      window.location.href = "index.html";
+      window.location.href = "dashboard.html";
     } catch (error) {
       errorMessageDiv.textContent = error.message;
       errorMessageDiv.classList.remove("d-none");
