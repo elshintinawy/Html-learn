@@ -4,7 +4,7 @@ const generateJWT = require("../utils/generateJWT");
 const httpStatus = require("../utils/http_status");
 
 const register = async (req, res) => {
-  const { nationalId, name, role, password } = req.body;
+  const { nationalId, name, role, password, email } = req.body;
   const oldEmployee = await employeeModel.findOne({ nationalId });
   if (oldEmployee) {
     return res
@@ -20,6 +20,7 @@ const register = async (req, res) => {
   const newEmployee = new employeeModel({
     nationalId,
     name,
+    email,
     role,
     password: hashedPassword,
   });
@@ -27,6 +28,7 @@ const register = async (req, res) => {
     nationalId: newEmployee.nationalId,
     name: newEmployee.name,
     role: newEmployee.role,
+    email: newEmployee.email,
   });
   newEmployee.token = token;
   await newEmployee.save();
@@ -115,8 +117,29 @@ const changePassword = async (req, res) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const nationalId = req.currentEmployee.nationalId;
+    const employee = await employeeModel.findOne({ nationalId });
+    if (!employee) {
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Employee not found"));
+    }
+    return res.status(200).json(httpStatus.httpSuccessStatus(employee));
+  } catch (err) {
+    //console.error(err);
+    return res
+      .status(500)
+      .json(
+        httpStatus.httpFaliureStatus("Server error while fetching profile")
+      );
+  }
+};
+
 module.exports = {
   register,
   login,
   changePassword,
+  getProfile,
 };
