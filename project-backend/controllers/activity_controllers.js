@@ -1,5 +1,9 @@
 const ActivityModel = require("../Models/activity_model");
 const httpStatus = require("../utils/http_status");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+const path = require("path");
 
 const AddNewActivity = async (req, res) => {
   console.log("Received request body:", req.body);
@@ -97,6 +101,7 @@ const updatableFieldsByRole = {
     "executionStatus",
     "progress",
     "status",
+    "images",
   ],
   manager: [
     "activityName",
@@ -107,6 +112,7 @@ const updatableFieldsByRole = {
     "receptionDate",
     "executionStatus",
     "progress",
+    "images",
   ],
   financial: [
     "estimatedValue",
@@ -152,28 +158,33 @@ const UpdateActivity = async (req, res) => {
     }
 
     const allowedFields = updatableFieldsByRole[employeeRole];
+
     Object.keys(req.body).forEach((key) => {
       if (allowedFields.includes(key)) {
         activityToUpdate[key] = req.body[key];
       } else {
-        return res
-          .status(403)
-          .json(
-            httpStatus.httpFaliureStatus(
-              `You are not allowed to update the field: ${key}`
-            )
-          );
+        console.log(`Field ${key} not allowed for role ${employeeRole}`);
       }
     });
 
+    if (req.files && req.files.length > 0) {
+      const newImagePaths = req.files.map(
+        (file) => `uploads/activities/${file.filename}`
+      );
+      activityToUpdate.images.push(...newImagePaths);
+    }
+
     const updatedActivity = await activityToUpdate.save();
+
+    console.log(req.files);
+
     res.status(200).json(httpStatus.httpSuccessStatus(updatedActivity));
   } catch (error) {
     res.status(400).json(httpStatus.httpErrorStatus(error.message));
   }
 };
 
-const uploadActivityImage = async (req, res) => {
+const uploadActivityImages = async (req, res) => {
   try {
     const { activityCode } = req.params;
     const activity = await ActivityModel.findOne({
@@ -186,20 +197,51 @@ const uploadActivityImage = async (req, res) => {
         .json(httpStatus.httpFaliureStatus("Activity not found"));
     }
 
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res
         .status(400)
         .json(httpStatus.httpFaliureStatus("No file uploaded"));
     }
 
-    activity.image = req.file.path;
+    const imagePaths = req.files.map((file) => {
+      return path
+        .join("uploads", "activities", file.filename)
+        .replace(/\\/g, "/");
+    });
+    activity.images.push(...imagePaths);
     await activity.save();
 
     res.status(200).json(httpStatus.httpSuccessStatus(activity));
   } catch (error) {
     res.status(500).json(httpStatus.httpErrorStatus(error.message));
   }
-}
+};
+
+const getActivityImages = async (req, res) => {
+  try {
+    const { activityCode } = req.params;
+
+    const activity = await ActivityModel.findOne({
+      activityCode: activityCode.toUpperCase(),
+    });
+
+    if (!activity) {
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Activity not found"));
+    }
+    res.status(200).json(
+      httpStatus.httpSuccessStatus({
+        images: activity.images,
+      })
+    );
+
+    res.json({ images: imageUrls });
+    s;
+  } catch (error) {
+    res.status(500).json(httpStatus.httpErrorStatus(error.message));
+  }
+};
 
 const GetAllActivites = async (req, res) => {
   try {
@@ -223,10 +265,17 @@ const GetAllActivites = async (req, res) => {
       filter.fundingType = query.fundingType;
     }
 
-    console.log("Filtering with:", filter);
+    //console.log("Filtering with:", filter);
 
     const activities = await ActivityModel.find(filter, { __v: 0, _id: 0 });
     const activityCount = await ActivityModel.countDocuments(filter);
+
+    if (activities.length > 0) {
+      console.log(
+        "شكل المسار المحفوظ في قاعدة البيانات:",
+        activities[0].images
+      );
+    }
 
     const responseData = {
       total: activityCount,
@@ -245,5 +294,6 @@ module.exports = {
   GetActivityById,
   DeleteActivity,
   UpdateActivity,
-  uploadActivityImage
+  uploadActivityImages,
+  getActivityImages,
 };

@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "executionStatus",
       "progress",
       "status",
+      "images",
     ],
     manager: [
       "activityName",
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "executionStatus",
       "progress",
       "status",
+      "images",
     ],
     financial: ["estimatedValue", "contractualValue", "disbursedAmount"],
     employee: [],
@@ -112,7 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             .split("T")[0]
                         : ""
                     }"></div>
-
+                        <div class="col-md-12">
+                              <label for="projectImages" class="form-label">رفع صور المشروع</label>
+                              <input type="file" id="images" name="images" class="form-control" multiple accept="image/*">
+                            </div>
                     <div class="col-12 mt-4 text-center">
                         <button type="submit" class="btn btn-primary px-4" id="save-changes-button">حفظ التعديلات</button>
                     </div>
@@ -123,7 +128,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const allInputs = formContainer.querySelectorAll("input, select");
     allInputs.forEach((input) => {
-      if (input.id && !allowedFields.includes(input.id)) {
+      if (
+        input.id &&
+        !allowedFields.includes(input.id) &&
+        input.type !== "images"
+      ) {
         input.disabled = true;
       }
     });
@@ -131,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
     attachSubmitListener(project.activityCode);
   }
 
-  // دالة إرسال التعديلات
   function attachSubmitListener(activityCode) {
     const editForm = document.getElementById("editProjectForm");
     editForm.addEventListener("submit", async (e) => {
@@ -140,13 +148,21 @@ document.addEventListener("DOMContentLoaded", () => {
       saveButton.disabled = true;
       saveButton.innerHTML = "جاري الحفظ...";
 
-      const updatedData = {};
+      const formData = new FormData();
+
       allowedFields.forEach((fieldId) => {
         const input = document.getElementById(fieldId);
-        if (input && !input.disabled) {
-          updatedData[fieldId] = input.value;
+        if (input) {
+          formData.append(fieldId, input.value);
         }
       });
+
+      const imageInput = document.getElementById("images");
+      if (imageInput && imageInput.files.length > 0) {
+        for (let i = 0; i < imageInput.files.length; i++) {
+          formData.append("images", imageInput.files[i]);
+        }
+      }
 
       try {
         const response = await fetch(
@@ -154,19 +170,19 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             method: "PUT",
             headers: {
-              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(updatedData),
+            body: formData,
           }
         );
+
         const result = await response.json();
+        console.log(result);
         if (!response.ok) throw new Error(result.data || "فشل تحديث المشروع");
 
         showToast("تم حفظ التعديلات بنجاح!", "success");
-        // الانتظار ثانيتين ثم إعادة التوجيه
         setTimeout(() => {
-          window.location.href = "index.html";
+          window.location.href = "dashboard.html";
         }, 2000);
       } catch (error) {
         showToast(`خطأ: ${error.message}`, "danger");

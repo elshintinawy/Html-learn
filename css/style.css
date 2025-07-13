@@ -1,126 +1,139 @@
 /* General Body and Font Styles */
 body {
-    font-family: 'Cairo', sans-serif;
-    background-color: #f4f7f6;
+  font-family: "Cairo", sans-serif;
+  background-color: #f4f7f6;
 }
 
 /* Sidebar Styles */
 .sidebar {
-    width: 280px;
-    background-color: #1a253c;
-    color: #fff;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
-    z-index: 1000;
+  width: 280px;
+  background-color: #1a253c;
+  color: #fff;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  z-index: 1000;
 }
 .sidebar .logo {
-    font-weight: 700;
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-    text-align: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
 }
 .sidebar .nav-link {
-    color: #adb5bd;
-    padding: 0.8rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s;
-    text-decoration: none;
+  color: #adb5bd;
+  padding: 0.8rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  text-decoration: none;
 }
 .sidebar .nav-link.active,
 .sidebar .nav-link:hover {
-    background-color: #0d6efd;
-    color: white;
+  background-color: #0d6efd;
+  color: white;
 }
 .sidebar .nav-link .icon {
-    font-size: 1.2rem;
-    margin-left: 0.8rem;
+  font-size: 1.2rem;
+  margin-left: 0.8rem;
 }
 .sidebar .user-profile {
-    margin-top: auto;
+  margin-top: auto;
 }
 
 /* Main Content Styles */
 .main-content {
-    margin-right: 280px;
-    padding: 2rem;
+  margin-right: 280px;
+  padding: 2rem;
 }
 
 /* Card Styles */
 .card {
-    border: none;
-    border-radius: 0.75rem;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
 }
 
 /* Action Buttons in Table */
 .action-btn {
-    background: none;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    border-radius: 0.3rem;
-    margin: 0 2px;
+  background: none;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.3rem;
+  margin: 0 2px;
 }
 .action-btn:hover {
-    background-color: #e9ecef;
+  background-color: #e9ecef;
 }
 
 /* Chart and Skeleton Styles (for dashboard) */
 .chart-container {
-    position: relative;
-    height: 350px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: relative;
+  height: 350px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .skeleton {
-    animation: skeleton-glow 1.5s linear infinite alternate;
-    background-color: #e9ecef;
+  animation: skeleton-glow 1.5s linear infinite alternate;
+  background-color: #e9ecef;
 }
 @keyframes skeleton-glow {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .skeleton-text {
-    width: 100%;
-    height: 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.25rem;
+  width: 100%;
+  height: 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.25rem;
 }
 
 /* Filter Card Styles */
 .filter-card .form-label {
-    font-size: 0.875rem;
+  font-size: 0.875rem;
 }
 
 /* Form Section Title (for add-project) */
 .form-section-title {
-    font-weight: 600;
-    color: #0d6efd;
-    border-bottom: 2px solid #0d6efd;
-    padding-bottom: 0.5rem;
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: #0d6efd;
+  border-bottom: 2px solid #0d6efd;
+  padding-bottom: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Toast Container (for notifications) */
 .toast-container {
-    z-index: 1100;
+  z-index: 1100;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    .main-content {
-        margin-right: 0;
-    }
-    .sidebar {
-        display: none;
-    }
+  .main-content {
+    margin-right: 0;
+  }
+  .sidebar {
+    display: none;
+  }
+}
+
+.truncate-text {
+  display: inline-block;
+  max-width: 400px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
 }

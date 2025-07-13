@@ -96,25 +96,38 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderTable(projects) {
+    const projectsTableBody = document.getElementById("projects-table-body");
     projectsTableBody.innerHTML = "";
     if (!projects || projects.length === 0) {
       projectsTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">لا توجد مشاريع تطابق البحث.</td></tr>`;
       return;
     }
+
     projects.reverse().forEach((project) => {
       const row = document.createElement("tr");
       const percentage = project.progress || 0;
       const barColor = getProgressBarColor(percentage, project.status);
 
+      // ### بداية: تم تحديث هذا الجزء ###
       row.innerHTML = `
-                <td>${project.activityName || "مشروع بدون اسم"}</td>
+                <td>
+                    <span class="truncate-text" title="${
+                      project.activityName || "مشروع بدون اسم"
+                    }">
+                        ${project.activityName || "مشروع بدون اسم"}
+                    </span>
+                </td>
                 <td><span class="badge bg-light text-dark fw-normal">${
                   project.projectCategory || "غير محدد"
                 }</span></td>
                 <td><span class="badge bg-info bg-opacity-25 text-info-emphasis">${
                   project.fundingType || "غير محدد"
                 }</span></td>
-                <td><div class="progress" style="height: 20px; font-size: 0.8rem;"><div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">${percentage}%</div></div></td>
+                <td>
+                    <div class="progress" role="progressbar" style="height: 20px; font-size: 0.8rem;">
+                        <div class="progress-bar fw-bold" style="width: ${percentage}%; background-color: ${barColor};">${percentage}%</div>
+                    </div>
+                </td>
                 <td>
                     <a href="project-details.html?code=${
                       project.activityCode
