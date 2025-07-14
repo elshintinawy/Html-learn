@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "progress",
       "status",
       "images",
+      "activityDescription",
     ],
     manager: [
       "activityName",
@@ -39,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "progress",
       "status",
       "images",
+      "activityDescription",
     ],
     financial: ["estimatedValue", "contractualValue", "disbursedAmount"],
     employee: [],
@@ -86,7 +88,14 @@ document.addEventListener("DOMContentLoaded", () => {
                       project.consultant || ""
                     }"></div>
                     <div class="col-md-6"><label for="status" class="form-label">حالة المشروع</label><select id="status" class="form-select"><option value="قيد التنفيذ">قيد التنفيذ</option><option value="مكتمل">مكتمل</option><option value="متأخر">متأخر</option></select></div>
-                    
+                   
+                    <div class="col-md-12">
+                    <label for="description" class="form-label">وصف المشروع</label>
+                    <textarea id="activityDescription" class="form-control" rows="4" style="resize: vertical; overflow:auto;">${
+                      project.activityDescription || ""
+                    }</textarea> 
+                    </div>
+
                     <h5 class="form-section-title">البيانات المالية والزمنية</h5>
                     <div class="col-md-4"><label for="estimatedValue" class="form-label">القيمة التقديرية</label><input type="number" id="estimatedValue" class="form-control" value="${
                       project.estimatedValue || 0

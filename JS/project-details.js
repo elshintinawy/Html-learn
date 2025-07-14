@@ -27,6 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("governorate", project.governorate);
     setText("consultant", project.consultant);
     setText(
+      "activityDescription",
+      project.activityDescription,
+      "لا يوجد وصف للمشروع."
+    );
+    setText(
       "estimatedValue",
       (project.estimatedValue || 0).toLocaleString() + " جنيه"
     );

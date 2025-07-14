@@ -102,6 +102,7 @@ const updatableFieldsByRole = {
     "progress",
     "status",
     "images",
+    "activityDescription",
   ],
   manager: [
     "activityName",
@@ -113,6 +114,7 @@ const updatableFieldsByRole = {
     "executionStatus",
     "progress",
     "images",
+    "activityDescription",
   ],
   financial: [
     "estimatedValue",

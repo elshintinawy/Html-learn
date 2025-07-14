@@ -10,12 +10,15 @@ const activitySchema = new mongoose.Schema(
       uppercase: true,
     },
     activityName: {
-      // اسم النشاط
       type: String,
       required: [true, "اسم النشاط مطلوب."],
       trim: true,
     },
-
+    activityDescription: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     governorate: {
       type: String,
       enum: {
