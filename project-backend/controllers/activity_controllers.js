@@ -4,6 +4,7 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const path = require("path");
+const fs = require("fs");
 
 const AddNewActivity = async (req, res) => {
   console.log("Received request body:", req.body);
@@ -103,6 +104,7 @@ const updatableFieldsByRole = {
     "status",
     "images",
     "activityDescription",
+    "activityPdf",
   ],
   manager: [
     "activityName",
@@ -115,6 +117,7 @@ const updatableFieldsByRole = {
     "progress",
     "images",
     "activityDescription",
+    "activityPdf",
   ],
   financial: [
     "estimatedValue",
@@ -169,16 +172,35 @@ const UpdateActivity = async (req, res) => {
       }
     });
 
-    if (req.files && req.files.length > 0) {
-      const newImagePaths = req.files.map(
+    // حفظ الصور
+    if (req.files?.images?.length > 0) {
+      const newImagePaths = req.files.images.map(
         (file) => `uploads/activities/${file.filename}`
       );
       activityToUpdate.images.push(...newImagePaths);
     }
 
-    const updatedActivity = await activityToUpdate.save();
+    // حفظ ملف PDF
+    if (req.files?.activityPdf?.length > 0) {
+      const newPdfFiles = req.files.activityPdf.map((file) => {
+        const safeName = Buffer.from(file.originalname, "latin1").toString(
+          "utf8"
+        );
 
-    console.log(req.files);
+        return {
+          filename: safeName,
+          path: `uploads/pdfs/${file.filename}`,
+        };
+      });
+
+      if (!Array.isArray(activityToUpdate.activityPdf)) {
+        activityToUpdate.activityPdf = [];
+      }
+
+      activityToUpdate.activityPdf.push(...newPdfFiles);
+    }
+
+    const updatedActivity = await activityToUpdate.save();
 
     res.status(200).json(httpStatus.httpSuccessStatus(updatedActivity));
   } catch (error) {
@@ -290,6 +312,65 @@ const GetAllActivites = async (req, res) => {
   }
 };
 
+const DeletePdfFromActivity = async (req, res) => {
+  try {
+    console.log("==== وصلت هنا فعلاً ====");
+    const { activityCode, pdfPath } = req.body;
+    console.log("Received code:", activityCode);
+
+    const activity = await ActivityModel.findOne({
+      activityCode: activityCode.toUpperCase(),
+    });
+    console.log("Activity result:", activity);
+    if (!activity)
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Project not found"));
+
+    activity.activityPdf = activity.activityPdf.filter(
+      (pdf) => pdf.path !== pdfPath
+    );
+
+    const fullPath = path.join(__dirname, "..", pdfPath);
+    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+
+    await activity.save();
+
+    res.status(200).json(httpStatus.httpSuccessStatus("PDF deleted"));
+  } catch (err) {
+    res.status(500).json(httpStatus.httpErrorStatus(err.message));
+  }
+};
+
+const DeleteImageFromActivity = async (req, res) => {
+  try {
+   const { activityCode, imagePath } = req.body;
+
+    const activity = await ActivityModel.findOne({
+      activityCode: activityCode.toUpperCase(),
+    });
+
+    if (!activity)
+      return res
+        .status(404)
+        .json(httpStatus.httpFaliureStatus("Project not found"));
+
+    console.log("Body received:", req.body);
+    console.log("Activity found:", activity);
+
+    activity.images = activity.images.filter((img) => img !== imagePath);
+
+    const fullPath = path.join(__dirname, "..", imagePath);
+    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+
+    await activity.save();
+
+    res.status(200).json(httpStatus.httpSuccessStatus("Image deleted"));
+  } catch (err) {
+    res.status(500).json(httpStatus.httpErrorStatus(err.message));
+  }
+};
+
 module.exports = {
   AddNewActivity,
   GetAllActivites,
@@ -298,4 +379,6 @@ module.exports = {
   UpdateActivity,
   uploadActivityImages,
   getActivityImages,
+  DeleteImageFromActivity,
+  DeletePdfFromActivity,
 };

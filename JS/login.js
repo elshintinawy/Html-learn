@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.data || "حدث خطأ غير متوقع");
+        throw new Error(result.message || result.data || "حدث خطأ غير متوقع");
       }
 
       const employeeData = result.data;

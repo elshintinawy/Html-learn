@@ -41,13 +41,15 @@ const login = async (req, res) => {
   if (!employee) {
     return res
       .status(404)
-      .json(httpStatus.httpFaliureStatus("Employee not found"));
+      .json(
+        httpStatus.httpFaliureStatus("الرقم القومي أو كلمة المرور غير صحيحة")
+      );
   }
   const isPasswordValid = await bcrypt.compare(password, employee.password);
   if (!isPasswordValid) {
     return res
       .status(401)
-      .json(httpStatus.httpFaliureStatus("Invalid password"));
+      .json(httpStatus.httpFaliureStatus("كلمة المرور غير صحيحة"));
   }
   const token = await generateJWT({
     nationalId: employee.nationalId,

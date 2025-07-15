@@ -1,3 +1,4 @@
+// project-details.js (المعدل بالكامل لدعم حذف الصور و PDF)
 document.addEventListener("DOMContentLoaded", () => {
   const projectNameHeader = document.getElementById("project-name-header");
   if (!projectNameHeader) return;
@@ -7,6 +8,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("loggedInUserToken");
   const activityCode = new URLSearchParams(window.location.search).get("code");
   const API_BASE_URL = "http://localhost:4000";
+
+  let mediaToDelete = { type: null, path: null };
+
+  function showToast(message, type = "success") {
+    const toastContainer = document.querySelector(".toast-container");
+    const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
+    const toastColor = type === "success" ? "bg-success" : "bg-danger";
+    const toastHTML = `
+      <div id="${toastId}" class="toast align-items-center text-white ${toastColor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>`;
+    toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+  }
 
   function displayError(message) {
     projectNameHeader.textContent = "حدث خطأ";
@@ -26,11 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("executingCompany", project.executingCompany);
     setText("governorate", project.governorate);
     setText("consultant", project.consultant);
-    setText(
-      "activityDescription",
-      project.activityDescription,
-      "لا يوجد وصف للمشروع."
-    );
     setText(
       "estimatedValue",
       (project.estimatedValue || 0).toLocaleString() + " جنيه"
@@ -73,36 +88,126 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       statusElement.innerHTML = `<span class="badge ${statusColorClass} p-2">${projectStatus}</span>`;
     }
+
+    // ✅ وصف المشروع
+    const descriptionEl = document.getElementById("activityDescription");
+    if (descriptionEl) {
+      descriptionEl.textContent = project.activityDescription || "لا يوجد وصف";
+    }
   }
 
   function renderImages(imagePaths = []) {
     if (!mediaTabContent) return;
-    mediaTabContent.innerHTML = "";
+    const section = document.createElement("div");
+    section.innerHTML = "<h6 class='mt-4'>صور المشروع:</h6>";
 
     if (imagePaths.length === 0) {
-      mediaTabContent.innerHTML =
-        '<p class="text-muted text-center p-4">لا توجد وسائط لعرضها حاليًا.</p>';
-      return;
+      section.innerHTML += "<p class='text-muted text-center'>لا توجد صور</p>";
+    } else {
+      const row = document.createElement("div");
+      row.className = "row g-3";
+
+      imagePaths.forEach((imgPath) => {
+        const fullImageUrl = `${API_BASE_URL}/${imgPath.replace(/\\/g, "/")}`;
+        const col = document.createElement("div");
+        col.className = "col-md-4";
+        col.innerHTML = `
+           <div class="position-relative">
+    <img src="${fullImageUrl}" class="img-fluid rounded shadow-sm" style="height:200px; object-fit:cover; width: 100%;">
+    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 delete-img-btn" data-path="${imgPath}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+      <i class="fas fa-trash"></i>
+    </button>
+  </div>
+        `;
+        row.appendChild(col);
+      });
+
+      section.appendChild(row);
     }
 
-    const imageRow = document.createElement("div");
-    imageRow.className = "row g-3";
-
-    imagePaths.forEach((imagePath) => {
-      const fullImageUrl = `${API_BASE_URL}/${imagePath.replace(/\\/g, "/")}`;
-
-      const imageCol = document.createElement("div");
-      imageCol.className = "col-lg-4 col-md-6 col-12";
-      imageCol.innerHTML = `
-        <a href="${fullImageUrl}" target="_blank" title="اضغط لتكبير الصورة">
-          <img src="${fullImageUrl}" class="img-fluid rounded shadow-sm" alt="صورة مشروع" style="width: 100%; height: 200px; object-fit: cover;">
-        </a>
-      `;
-      imageRow.appendChild(imageCol);
-    });
-
-    mediaTabContent.appendChild(imageRow);
+    mediaTabContent.appendChild(section);
   }
+
+  function renderPDFs(pdfFiles = []) {
+    const section = document.createElement("div");
+    section.innerHTML = "<h6 class='mt-4'>ملفات PDF:</h6>";
+
+    if (!Array.isArray(pdfFiles) || pdfFiles.length === 0) {
+      section.innerHTML +=
+        "<p class='text-muted text-center'>لا توجد ملفات PDF</p>";
+    } else {
+      const list = document.createElement("ul");
+      list.className = "list-group";
+
+      pdfFiles.forEach((pdf) => {
+        const fullUrl = `${API_BASE_URL}/${pdf.path.replace(/\\/g, "/")}`;
+        const item = document.createElement("li");
+        item.className =
+          "list-group-item d-flex justify-content-between align-items-center";
+        item.innerHTML = `
+          <span>${pdf.filename}</span>
+          <div>
+            <a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-primary me-2">عرض / تحميل</a>
+            <button class="btn btn-sm btn-outline-danger delete-pdf-btn" data-path="${pdf.path}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">حذف</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+
+      section.appendChild(list);
+    }
+
+    mediaTabContent.appendChild(section);
+  }
+
+  document.addEventListener("click", (e) => {
+    if (e.target.matches(".delete-pdf-btn")) {
+      mediaToDelete = { type: "pdf", path: e.target.dataset.path };
+    } else if (e.target.matches(".delete-img-btn")) {
+      mediaToDelete = { type: "image", path: e.target.dataset.path };
+    }
+  });
+
+  document
+    .getElementById("confirmDeleteMediaBtn")
+    .addEventListener("click", async () => {
+      if (!activityCode || !mediaToDelete.path) return;
+
+      // بناء رابط الحذف باستخدام POST
+      const url = `${API_BASE_URL}/activity/${
+        mediaToDelete.type === "pdf" ? "delete-pdf" : "delete-image"
+      }`;
+
+      // تجهيز البيانات لإرسالها في body
+      const body = JSON.stringify({
+        activityCode,
+        [`${mediaToDelete.type}Path`]: mediaToDelete.path,
+      });
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body, 
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "فشل في الحذف");
+
+        showToast("تم الحذف بنجاح");
+        bootstrap.Modal.getInstance(
+          document.getElementById("confirmDeleteModal")
+        ).hide();
+        initializePage();
+      } catch (err) {
+        showToast("فشل في الحذف: " + err.message, "danger");
+      } finally {
+        mediaToDelete = { type: null, path: null };
+      }
+    });
 
   async function initializePage() {
     if (!activityCode) {
@@ -114,26 +219,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(`${API_BASE_URL}/activity/${activityCode}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.data || errorData.message || "فشل في جلب بيانات المشروع."
-        );
-      }
+      if (!response.ok) throw new Error("فشل في تحميل بيانات المشروع.");
 
       const result = await response.json();
-      const projectData = result.data;
-
-      if (!projectData || typeof projectData !== "object") {
-        throw new Error("شكل البيانات المستلمة من السيرفر غير صحيح أو فارغ.");
-      }
-
-      renderProjectDetails(projectData);
-      renderImages(projectData.images);
-    } catch (error) {
-      console.error("حدث خطأ في تهيئة الصفحة:", error);
-      displayError(error.message);
+      renderProjectDetails(result.data);
+      mediaTabContent.innerHTML = "";
+      renderImages(result.data.images || []);
+      renderPDFs(result.data.activityPdf || []);
+    } catch (err) {
+      displayError(err.message);
     }
   }
 

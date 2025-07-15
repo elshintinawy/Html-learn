@@ -24,16 +24,25 @@ router.put(
   "/:activityCode",
   verifyLogin,
   allowedTo(userRoles.ADMIN, userRoles.MANAGER, userRoles.FINANCIAL),
-  upload.array("images", 3),
+  upload.fields([
+    { name: "images", maxCount: 3 },
+    { name: "activityPdf", maxCount: 3 },
+  ]),
   controllers.UpdateActivity
 );
 
 router.post(
-  "/:activityCode/upload-image",
+  "/delete-pdf",
   verifyLogin,
   allowedTo(userRoles.ADMIN, userRoles.MANAGER),
-  upload.array("images", 3),
-  controllers.uploadActivityImages
+  controllers.DeletePdfFromActivity
+);
+
+router.post(
+  "/delete-image",
+  verifyLogin,
+  allowedTo(userRoles.ADMIN, userRoles.MANAGER),
+  controllers.DeleteImageFromActivity
 );
 
 router.get("/:activityCode/images", verifyLogin, controllers.getActivityImages);

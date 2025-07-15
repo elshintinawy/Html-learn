@@ -140,6 +140,13 @@ const activitySchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+
+    activityPdf: [
+      {
+        filename: String,
+        path: String,
+      },
+    ],
   },
   {
     timestamps: true,
