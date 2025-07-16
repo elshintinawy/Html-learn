@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "images",
       "activityDescription",
       "activityPdf",
+      "projectLocationLink",
     ],
     manager: [
       "activityName",
@@ -41,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "images",
       "activityDescription",
       "activityPdf",
+      "projectLocationLink",
     ],
     financial: ["estimatedValue", "contractualValue", "disbursedAmount"],
     employee: [],
@@ -88,7 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="col-md-12"><label for="activityDescription" class="form-label">وصف المشروع</label><textarea id="activityDescription" class="form-control" rows="4" style="resize: vertical;">${
             project.activityDescription || ""
           }</textarea></div>
-          
+          <div class="col-md-12">
+            <label for="projectLocationLink" class="form-label">رابط الموقع الجغرافي (Google Maps)</label>
+            <input type="url" id="projectLocationLink" class="form-control" value="${
+              project.projectLocationLink || ""
+            }" placeholder="https://maps.google.com/?q=30.1,31.2">
+          </div>
           <h5 class="form-section-title">البيانات المالية والزمنية</h5>
           <div class="col-md-4"><label for="estimatedValue" class="form-label">القيمة التقديرية</label><input type="number" id="estimatedValue" class="form-control" value="${
             project.estimatedValue || 0
@@ -137,6 +144,15 @@ document.addEventListener("DOMContentLoaded", () => {
         input.disabled = true;
       }
     });
+
+    if (userRole === "financial") {
+      const mediaInputWrapper = document
+        .getElementById("mediaFiles")
+        ?.closest(".col-md-12");
+      if (mediaInputWrapper) {
+        mediaInputWrapper.remove();
+      }
+    }
 
     attachSubmitListener(project.activityCode);
   }

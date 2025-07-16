@@ -105,6 +105,7 @@ const updatableFieldsByRole = {
     "images",
     "activityDescription",
     "activityPdf",
+    "projectLocationLink",
   ],
   manager: [
     "activityName",
@@ -118,6 +119,7 @@ const updatableFieldsByRole = {
     "images",
     "activityDescription",
     "activityPdf",
+    "projectLocationLink",
   ],
   financial: [
     "estimatedValue",
@@ -344,7 +346,7 @@ const DeletePdfFromActivity = async (req, res) => {
 
 const DeleteImageFromActivity = async (req, res) => {
   try {
-   const { activityCode, imagePath } = req.body;
+    const { activityCode, imagePath } = req.body;
 
     const activity = await ActivityModel.findOne({
       activityCode: activityCode.toUpperCase(),
@@ -355,8 +357,8 @@ const DeleteImageFromActivity = async (req, res) => {
         .status(404)
         .json(httpStatus.httpFaliureStatus("Project not found"));
 
-    console.log("Body received:", req.body);
-    console.log("Activity found:", activity);
+    console.log("imagePath from body:", imagePath);
+    console.log("images in DB:", activity.images);
 
     activity.images = activity.images.filter((img) => img !== imagePath);
 

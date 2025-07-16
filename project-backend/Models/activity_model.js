@@ -147,6 +147,11 @@ const activitySchema = new mongoose.Schema(
         path: String,
       },
     ],
+
+    projectLocationLink:{
+      type: String,
+      default: "",
+    }
   },
   {
     timestamps: true,

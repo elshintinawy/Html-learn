@@ -73,6 +73,17 @@
                 الوسائط
               </button>
             </li>
+
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#projectLocationLink-tab"
+                type="button"
+              >
+                الموقع الجغرافي
+              </button>
+            </li>
           </ul>
         </div>
         <div class="card-body">
@@ -140,10 +151,65 @@
             <div class="tab-pane fade" id="media-tab" role="tabpanel">
               <!-- سيتم تعبئته بالصور و PDF عبر JS -->
             </div>
+            <div
+              class="tab-pane fade"
+              id="projectLocationLink-tab"
+              role="tabpanel"
+            >
+              <h5 class="card-title mb-3">الموقع الجغرافي للمشروع</h5>
+              <div class="text-center">
+                <a
+                  id="project-location-link"
+                  href="#"
+                  target="_blank"
+                  class="btn btn-outline-primary btn-lg"
+                  style="display: none"
+                >
+                  <i class="fas fa-map-marker-alt me-2"></i>
+                  فتح في Google Earth / Maps
+                </a>
+                <p
+                  id="no-location-msg"
+                  class="text-danger mt-3"
+                  style="display: none"
+                >
+                  لم يتم تحديد الموقع في الوقت الحالي.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </main>
+
+    <div
+      class="modal fade"
+      id="imagePreviewModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0">
+          <div class="modal-header border-0">
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="إغلاق"
+            ></button>
+          </div>
+          <div class="modal-body text-center">
+            <img
+              id="previewImage"
+              src=""
+              alt="صورة المشروع"
+              class="img-fluid rounded"
+              style="max-height: 80vh"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ✅ Modal تأكيد الحذف -->
     <div

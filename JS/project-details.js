@@ -16,12 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
     const toastColor = type === "success" ? "bg-success" : "bg-danger";
     const toastHTML = `
-      <div id="${toastId}" class="toast align-items-center text-white ${toastColor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div class="toast-body">${message}</div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-      </div>`;
+        <div id="${toastId}" class="toast align-items-center text-white ${toastColor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>`;
     toastContainer.insertAdjacentHTML("beforeend", toastHTML);
     const toastElement = document.getElementById(toastId);
     const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
@@ -89,10 +89,26 @@ document.addEventListener("DOMContentLoaded", () => {
       statusElement.innerHTML = `<span class="badge ${statusColorClass} p-2">${projectStatus}</span>`;
     }
 
-    // ✅ وصف المشروع
     const descriptionEl = document.getElementById("activityDescription");
     if (descriptionEl) {
       descriptionEl.textContent = project.activityDescription || "لا يوجد وصف";
+    }
+
+    const locationLink = document.getElementById("project-location-link");
+    const noLocationMsg = document.getElementById("no-location-msg");
+
+    if (locationLink && noLocationMsg) {
+      if (
+        project.projectLocationLink &&
+        project.projectLocationLink.trim() !== ""
+      ) {
+        locationLink.href = project.projectLocationLink;
+        locationLink.style.display = "inline-block";
+        noLocationMsg.style.display = "none";
+      } else {
+        locationLink.style.display = "none";
+        noLocationMsg.style.display = "block";
+      }
     }
   }
 
@@ -112,13 +128,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const col = document.createElement("div");
         col.className = "col-md-4";
         col.innerHTML = `
-           <div class="position-relative">
-    <img src="${fullImageUrl}" class="img-fluid rounded shadow-sm" style="height:200px; object-fit:cover; width: 100%;">
-    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 delete-img-btn" data-path="${imgPath}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
-      <i class="fas fa-trash"></i>
-    </button>
-  </div>
-        `;
+    <div class="position-relative">
+      <a href="${fullImageUrl}" target="_blank">
+  <img src="${fullImageUrl}" 
+       class="img-fluid rounded shadow-sm zoom-hover" 
+       style="height:200px; object-fit:cover; width: 100%;" />
+</a>
+      <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 delete-img-btn" 
+              data-path="${imgPath}" 
+              data-bs-toggle="modal" 
+              data-bs-target="#confirmDeleteModal">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `;
         row.appendChild(col);
       });
 
@@ -145,12 +168,12 @@ document.addEventListener("DOMContentLoaded", () => {
         item.className =
           "list-group-item d-flex justify-content-between align-items-center";
         item.innerHTML = `
-          <span>${pdf.filename}</span>
-          <div>
-            <a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-primary me-2">عرض / تحميل</a>
-            <button class="btn btn-sm btn-outline-danger delete-pdf-btn" data-path="${pdf.path}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">حذف</button>
-          </div>
-        `;
+            <span>${pdf.filename}</span>
+            <div>
+              <a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-primary me-2">عرض / تحميل</a>
+              <button class="btn btn-sm btn-outline-danger delete-pdf-btn" data-path="${pdf.path}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">حذف</button>
+            </div>
+          `;
         list.appendChild(item);
       });
 
@@ -160,11 +183,15 @@ document.addEventListener("DOMContentLoaded", () => {
     mediaTabContent.appendChild(section);
   }
 
+  // ✅ تم تعديل هذه الجزئية لتعمل سواءً على الزر أو الأيقونة اللي جواه
   document.addEventListener("click", (e) => {
-    if (e.target.matches(".delete-pdf-btn")) {
-      mediaToDelete = { type: "pdf", path: e.target.dataset.path };
-    } else if (e.target.matches(".delete-img-btn")) {
-      mediaToDelete = { type: "image", path: e.target.dataset.path };
+    const pdfBtn = e.target.closest(".delete-pdf-btn");
+    const imgBtn = e.target.closest(".delete-img-btn");
+
+    if (pdfBtn) {
+      mediaToDelete = { type: "pdf", path: pdfBtn.dataset.path };
+    } else if (imgBtn) {
+      mediaToDelete = { type: "image", path: imgBtn.dataset.path };
     }
   });
 
@@ -173,12 +200,10 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", async () => {
       if (!activityCode || !mediaToDelete.path) return;
 
-      // بناء رابط الحذف باستخدام POST
       const url = `${API_BASE_URL}/activity/${
         mediaToDelete.type === "pdf" ? "delete-pdf" : "delete-image"
       }`;
 
-      // تجهيز البيانات لإرسالها في body
       const body = JSON.stringify({
         activityCode,
         [`${mediaToDelete.type}Path`]: mediaToDelete.path,
@@ -191,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body, 
+          body,
         });
 
         const result = await response.json();
@@ -232,4 +257,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   initializePage();
+  document.addEventListener("click", (e) => {
+    const targetImg = e.target.closest(".previewable-img");
+    if (targetImg) {
+      const previewModal = new bootstrap.Modal(
+        document.getElementById("imagePreviewModal")
+      );
+      const previewImage = document.getElementById("previewImage");
+      previewImage.src = targetImg.dataset.full;
+      previewModal.show();
+    }
+  });
 });
