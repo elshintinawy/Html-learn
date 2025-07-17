@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const saveButton = document.getElementById("save-project-button");
   const toastContainer = document.querySelector(".toast-container");
-  const API_URL = "http://localhost:4000/activity/";
+/*   const API_URL = "http://localhost:4000/activity/"; */
 
   function showToast(message, type = "success") {
     const toastId = "toast-" + Math.random().toString(36).substr(2, 9);

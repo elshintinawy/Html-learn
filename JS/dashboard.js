@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteConfirmBtn = document.getElementById("confirmDeleteBtn");
   const toastContainer = document.querySelector(".toast-container");
   const filterButton = document.getElementById("filter-button");
-  const API_URL = "http://localhost:4000/activity/";
+  /*   const API_URL = "http://localhost:4000/activity/"; */
   let codeToDelete = null;
 
   function getProgressBarColor(percentage, status) {
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const token = localStorage.getItem("loggedInUserToken");
       const queryParams = new URLSearchParams(filters).toString();
-      const fetchUrl = `${API_URL}?${queryParams}`;
+      const fetchUrl = `${API_URL}activity?${queryParams}`;
 
       const response = await fetch(fetchUrl, {
         headers: { Authorization: `Bearer ${token}` },
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!codeToDelete) return;
     const token = localStorage.getItem("loggedInUserToken");
     try {
-      const response = await fetch(`${API_URL}${codeToDelete}`, {
+      const response = await fetch(`${API_URL}activity${codeToDelete}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

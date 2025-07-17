@@ -21,7 +21,7 @@ document.getElementById("export-excel-btn").addEventListener("click", () => {
     queryParams.push(`status=${encodeURIComponent(status)}`);
 
   const queryString = queryParams.join("&");
-  const url = `http://localhost:4000/activity/export-excel${
+  const url = `${API_URL}activity/export-excel${
     queryString ? `?${queryString}` : ""
   }`;
 

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mediaTabContent = document.getElementById("media-tab");
   const token = localStorage.getItem("loggedInUserToken");
   const activityCode = new URLSearchParams(window.location.search).get("code");
-  const API_BASE_URL = "http://localhost:4000";
+  const API_BASE_URL = API_URL;
 
   let mediaToDelete = { type: null, path: null };
 
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.className = "row g-3";
 
       imagePaths.forEach((imgPath) => {
-        const fullImageUrl = `${API_BASE_URL}/${imgPath.replace(/\\/g, "/")}`;
+        const fullImageUrl = `${API_BASE_URL}${imgPath.replace(/\\/g, "/")}`;
         const col = document.createElement("div");
         col.className = "col-md-4";
         col.innerHTML = `
@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", async () => {
       if (!activityCode || !mediaToDelete.path) return;
 
-      const url = `${API_BASE_URL}/activity/${
+      const url = `${API_BASE_URL}activity/${
         mediaToDelete.type === "pdf" ? "delete-pdf" : "delete-image"
       }`;
 
@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/activity/${activityCode}`, {
+      const response = await fetch(`${API_BASE_URL}activity/${activityCode}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error("فشل في تحميل بيانات المشروع.");

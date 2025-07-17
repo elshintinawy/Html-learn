@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         const response = await fetch(
-          `http://localhost:4000/activity/${activityCode}`,
+          `${API_URL}activity/${activityCode}`,
           {
             method: "PUT",
             headers: {
@@ -243,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     try {
       const response = await fetch(
-        `http://localhost:4000/activity/${activityCode}`,
+        `${API_URL}activity/${activityCode}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

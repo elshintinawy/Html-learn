@@ -41,15 +41,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- 4. دالة لجلب وعرض بيانات الملف الشخصي ---
+
   async function loadProfile() {
-    // يتم التحقق من وجود التوكن في ملف main.js، لكن يمكن إضافة تحقق إضافي هنا
+
     if (!token) {
-      return; // سيقوم main.js بإعادة التوجيه
+      return; 
     }
 
     try {
-      const response = await fetch("http://localhost:4000/auth/me", {
+      const response = await fetch(`${API_URL}auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/auth/changePassword",
+        `${API_URL}auth/changePassword`,
         {
           method: "PUT",
           headers: {
