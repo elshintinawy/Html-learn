@@ -29,12 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const employeeData = result.data;
 
-      // ### بداية: هذا هو الجزء الذي تم تصحيحه ###
-      // الآن نقوم بحفظ التوكن، الاسم، والصلاحية
       localStorage.setItem("loggedInUserToken", employeeData.token);
       localStorage.setItem("loggedInUser", employeeData.name);
-      localStorage.setItem("userRole", employeeData.role); // <-- هذا هو السطر الجديد والمهم
-      // ### نهاية: الجزء الذي تم تصحيحه ###
+      localStorage.setItem("userRole", employeeData.role); 
+      
 
       window.location.href = "dashboard.html";
     } catch (error) {

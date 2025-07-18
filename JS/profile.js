@@ -1,11 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // التأكد من أننا في الصفحة الصحيحة عبر التحقق من وجود عنصر فريد
   const changePasswordForm = document.getElementById("changePasswordForm");
   if (!changePasswordForm) {
     return;
   }
 
-  // --- 1. تعريف عناصر الواجهة ---
   const token = localStorage.getItem("loggedInUserToken");
   const profileName = document.getElementById("profile-name");
   const profileRole = document.getElementById("profile-role");
@@ -13,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileCreatedAt = document.getElementById("profile-createdAt");
   const savePasswordBtn = document.getElementById("save-password-btn");
 
-  // --- 2. قاموس لترجمة الصلاحيات (Roles) ---
   const roleTranslations = {
     admin: "ادمن",
     manager: "انشاء وتخطيط",
@@ -21,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     employee: "موظف",
   };
 
-  // --- 3. دالة لإظهار الإشعارات (Toast) ---
   function showToast(message, type = "success") {
     const toastContainer = document.querySelector(".toast-container");
     const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
@@ -41,11 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
   async function loadProfile() {
-
     if (!token) {
-      return; 
+      return;
     }
 
     try {
@@ -62,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
       profileName.textContent = user.name || "غير محدد";
       profileEmail.textContent = user.email || "غير متوفر";
       profileRole.textContent = roleTranslations[user.role] || user.role;
-      // نفترض أن الباك اند يرسل createdAt كتاريخ ISO String
+
       profileCreatedAt.textContent = new Date(
         user.createdAt
       ).toLocaleDateString("ar-EG", {
@@ -76,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- 5. ربط حدث تغيير كلمة المرور ---
   changePasswordForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     savePasswordBtn.disabled = true;
@@ -101,25 +94,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const response = await fetch(
-        `${API_URL}auth/changePassword`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            OldPassword: currentPassword,
-            NewPassword: newPassword,
-            ConfirmPassword: confirmPassword,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}auth/changePassword`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          OldPassword: currentPassword,
+          NewPassword: newPassword,
+          ConfirmPassword: confirmPassword,
+        }),
+      });
 
       const result = await response.json();
       if (!response.ok) {
-        // يفترض أن الباك اند يرسل رسالة الخطأ في result.data أو result.message
         throw new Error(
           result.data || result.message || "فشل تغيير كلمة المرور"
         );
@@ -129,11 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
         "تم تغيير كلمة المرور بنجاح! سيتم تسجيل خروجك الآن.",
         "success"
       );
-      // الانتظار 3 ثواني ليقرأ المستخدم الرسالة ثم تسجيل الخروج
+
       setTimeout(() => {
         localStorage.clear();
         window.location.href = "login.html";
-      }, 3000);
+      }, 2000);
     } catch (error) {
       showToast(`خطأ: ${error.message}`, "danger");
       savePasswordBtn.disabled = false;
@@ -141,6 +130,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- 6. تشغيل كل شيء ---
   loadProfile();
 });

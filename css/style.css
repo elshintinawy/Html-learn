@@ -147,3 +147,13 @@ body {
   transform: scale(1.03);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
+
+.user-profile .dropdown a {
+  gap: 10px;
+}
+
+.user-profile .dropdown a > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

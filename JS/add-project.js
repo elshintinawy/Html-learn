@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const saveButton = document.getElementById("save-project-button");
   const toastContainer = document.querySelector(".toast-container");
-/*   const API_URL = "http://localhost:4000/activity/"; */
 
   function showToast(message, type = "success") {
     const toastId = "toast-" + Math.random().toString(36).substr(2, 9);
@@ -51,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("loggedInUserToken");
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}activity`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +61,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.data || "حدث خطأ أثناء حفظ المشروع.");
+        throw new Error(
+          result.message || result.data || "حدث خطأ أثناء حفظ المشروع."
+        );
       }
 
       showToast("تمت إضافة المشروع بنجاح!", "success");
